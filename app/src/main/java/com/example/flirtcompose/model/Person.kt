@@ -1,6 +1,9 @@
 package com.example.flirtcompose.model
 
+import android.os.Parcelable
 import kotlinx.serialization.SerialName
+
+
 
 data class Person(
     val login: String,
