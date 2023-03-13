@@ -1,6 +1,9 @@
 package com.example.flirtcompose.model
 
+import android.os.Parcelable
 import kotlinx.serialization.SerialName
+
+
 
 data class Person(
     val login: String,
@@ -8,9 +11,9 @@ data class Person(
     val nick: String,
     val iurl: String,
     @SerialName("iurl_600")
-    val iurl600: String,
+    val iurl_600: String,
     @SerialName("iurl_200")
-    val iurl200: String,
+    val iurl_200: String,
     val photos: List<PersonPhoto>,
     val online: Boolean,
     val pcnt: Int,

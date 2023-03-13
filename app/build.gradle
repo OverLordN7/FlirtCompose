@@ -19,7 +19,6 @@ android {
             useSupportLibrary true
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -79,4 +78,10 @@ dependencies {
 
     //DJ for ViewModel factory
     implementation "androidx.activity:activity-ktx:1.6.1"
+
+    // Paging 3.0
+    implementation 'androidx.paging:paging-compose:1.0.0-alpha14'
+
+    //Navigation
+    implementation "androidx.navigation:navigation-compose:2.5.3"
 }
