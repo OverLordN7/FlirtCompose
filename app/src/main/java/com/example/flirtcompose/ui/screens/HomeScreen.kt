@@ -1,7 +1,5 @@
 package com.example.flirtcompose.ui.screens
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,12 +8,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -26,6 +24,7 @@ import com.example.flirtcompose.navigation.Screen
 
 
 private const val TAG = "HomeScreen"
+private const val HEADER = "http://dating.mts.by"
 
 @Composable
 fun HomeScreen(personViewModel: PersonViewModel,navController: NavController,modifier: Modifier = Modifier){
@@ -39,7 +38,7 @@ fun DisplayListPersons(personViewModel: PersonViewModel,navController: NavContro
 
     LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
         items(personlist.itemCount){
-            personlist[it]?.let { it1 -> PersonCard(it1,navController) }
+            personlist[it]?.let { it1 -> PersonCard(it1,navController,personViewModel) }
         }
 
         when(personlist.loadState.append){
@@ -95,15 +94,9 @@ fun LoadingItem(modifier: Modifier = Modifier){
 }
 
 @Composable
-fun PersonCard(person: Person,navController: NavController){
-    val imageURL = "http://dating.mts.by"+person.iurl_600
-    val parsedIurl = imageURL.replace('/','^')
-    val context = LocalContext.current
-
-    var rawData = person.photos
-    val preparedData = emptyList<String>().toMutableList()
-
-
+fun PersonCard(person: Person, navController: NavController, personViewModel: PersonViewModel
+){
+    val imageURL = HEADER + person.iurl_600
 
     Card(
         modifier = Modifier
@@ -111,18 +104,9 @@ fun PersonCard(person: Person,navController: NavController){
             .clip(RoundedCornerShape(10.dp))
             .border(4.dp, Color.Black, RoundedCornerShape(8))
             .clickable {
-                Toast.makeText(context,"Card name: ${person.name}",Toast.LENGTH_SHORT).show()
-                navController.navigate(Screen.ProfileScreen
-                    .withArgs("${person.name}/${parsedIurl}")
-                )
+                personViewModel.person = person
 
-                rawData.forEach {
-                    val rawImage = "http://dating.mts.by" + it.url
-                    preparedData += rawImage
-                    Log.d(TAG,"$preparedData")
-                }
-
-
+                navController.navigate(Screen.ProfileScreen.route)
             },
     ) {
         Column(
@@ -136,6 +120,9 @@ fun PersonCard(person: Person,navController: NavController){
                 modifier = Modifier
                     .padding(4.dp)
             )
+
+            //TODO DELETE this line after debug
+            Text(person.photos.size.toString())
 
         }
     }

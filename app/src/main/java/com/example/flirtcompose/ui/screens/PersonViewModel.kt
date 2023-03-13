@@ -8,14 +8,23 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.flirtcompose.RequestApplication
 import com.example.flirtcompose.data.PersonPagingSource
 import com.example.flirtcompose.data.RequestRepository
+import com.example.flirtcompose.model.Person
+import com.example.flirtcompose.model.PersonPhoto
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 
 private const val TAG = "PersonViewModel"
 
 class PersonViewModel(private val requestRepository: RequestRepository):ViewModel(){
+
+    var person = Person()
 
     val personPager = Pager(
         PagingConfig(pageSize = 10)
