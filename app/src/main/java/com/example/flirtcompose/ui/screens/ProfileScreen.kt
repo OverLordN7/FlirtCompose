@@ -29,10 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.flirtcompose.ui.theme.*
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
+import com.example.flirtcompose.navigation.Screen
 
 
 private const val TAG = "ProfileScreen"
@@ -40,7 +43,7 @@ private const val HEADER = "http://dating.mts.by"
 
 
 @Composable
-fun ProfileScreen(personViewModel: PersonViewModel,modifier: Modifier = Modifier){
+fun ProfileScreen(personViewModel: PersonViewModel,navController:NavController,modifier: Modifier = Modifier){
     val person = personViewModel.person
 
     Column(
@@ -48,9 +51,9 @@ fun ProfileScreen(personViewModel: PersonViewModel,modifier: Modifier = Modifier
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        PersonalInfoCard(person = person)
+        PersonalInfoCard(person = person,navController)
         ButtonMenu()
-        GalleryCard(person = person)
+        GalleryCard(person = person,navController, personViewModel = personViewModel)
         Text(text = person.greeting,color = Color.White)
 
     }
@@ -58,15 +61,33 @@ fun ProfileScreen(personViewModel: PersonViewModel,modifier: Modifier = Modifier
 
 
 @Composable
-fun PersonalInfoCard(person: Person){
+fun PersonalInfoCard(person: Person,navController: NavController){
     val preparedImg = HEADER + person.iurl_600
     val context = LocalContext.current
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.weight(1f)
+        ) {
+            OutlinedButton(
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                border = BorderStroke(0.dp,Color.Transparent),
+                modifier = Modifier
+                    .size(50.dp).weight(0.5f),
+                contentPadding = PaddingValues(),
+                onClick = {navController.popBackStack()},
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = "chat",
+                    modifier = Modifier.size(25.dp)
+                )
+            }
+        }
 
         Card(
             modifier = Modifier
@@ -158,12 +179,13 @@ fun PersonalInfoCard(person: Person){
                 }
             }
         }
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-fun GalleryCard(person: Person){
+fun GalleryCard(person: Person,navController: NavController,personViewModel: PersonViewModel){
 
     var isExpanded by remember { mutableStateOf(false) }
     var isBigPhotoSet by remember { mutableStateOf(false) }
@@ -178,11 +200,8 @@ fun GalleryCard(person: Person){
         photoList.add(item)
     }
 
-//    if (photoList.size<3){
-//        expandHeight = 150
-//    }else{
-//        expandHeight = 200
-//    }
+    personViewModel.photoList = photoList
+
 
 
     Card(
@@ -209,7 +228,7 @@ fun GalleryCard(person: Person){
             Box(modifier = Modifier.height(expandHeightGrid.dp)){
                 LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
                     items(photoList.size){
-                        PhotoCard(photoList[it])
+                        PhotoCard(photoList[it],navController,it)
                     }
                 }
             }
@@ -244,8 +263,11 @@ fun GalleryCard(person: Person){
 }
 
 @Composable
-fun PhotoCard(image: String){
-    Card(modifier = Modifier) {
+fun PhotoCard(image: String,navController: NavController,id: Int){
+    Card(modifier = Modifier.clickable {
+
+        navController.navigate(Screen.ImageBeltScreen.withArgs(id.toString()))
+    }) {
         AsyncImage(model = image, contentDescription = "image")
     }
 }
@@ -339,36 +361,4 @@ fun ButtonMenu(){
             Text(text = countLikes.value.toString(), color = Color.White)
         }
     }
-}
-
-@Composable
-fun GalleryList(photoList: List<String>,size: Int, onClick: ()-> Unit){
-    val context = LocalContext.current
-
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(modifier = Modifier.height(size.dp)){
-            LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
-                items(photoList.size){
-                    PhotoCard(photoList[it])
-                }
-            }
-        }
-
-        OutlinedButton(
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-            border = BorderStroke(0.dp,Color.Transparent),
-            modifier = Modifier.size(25.dp),
-            contentPadding = PaddingValues(),
-            onClick = onClick) {
-            Image(
-                painter = painterResource(id = R.drawable.baseline_expand_more_24),
-                contentDescription = stringResource(R.string.location),
-            )
-        }
-    }
-
 }

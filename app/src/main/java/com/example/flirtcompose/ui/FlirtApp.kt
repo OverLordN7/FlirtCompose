@@ -3,11 +3,14 @@ package com.example.flirtcompose.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.screens.HomeScreen
+import com.example.flirtcompose.ui.screens.ImageBeltScreen
 import com.example.flirtcompose.ui.screens.PersonViewModel
 import com.example.flirtcompose.ui.screens.ProfileScreen
 
@@ -24,7 +27,24 @@ fun FlirtApp(modifier: Modifier = Modifier){
         }
 
         composable(route = Screen.ProfileScreen.route){
-            ProfileScreen(personViewModel = personViewModel)
+            ProfileScreen(personViewModel = personViewModel,navController)
+        }
+
+        composable(
+            route = Screen.ImageBeltScreen.route + "/{id}",
+            arguments = listOf(
+                navArgument("id"){
+                    type = NavType.StringType
+                    defaultValue = "0"
+                    nullable = false
+                },
+            )
+        ){
+            ImageBeltScreen(
+                personViewModel = personViewModel,
+                navController = navController,
+                id = it.arguments?.getString("id")!!,
+            )
         }
     }
 }

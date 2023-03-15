@@ -17,3 +17,5 @@ val RainbowYellow = Color(0xFFFFF176)
 val RainbowLightGreen = Color(0xFFAED581)
 val RainbowLightBlue = Color(0xFF4DD0E1)
 val RainbowLightPurple = Color(0xFF9575CD)
+
+val TransparentBlack = Color(0x72000000)

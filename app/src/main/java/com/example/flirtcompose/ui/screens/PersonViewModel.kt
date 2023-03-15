@@ -26,6 +26,8 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     var person = Person()
 
+    var photoList: List<String> = emptyList()
+
     val personPager = Pager(
         PagingConfig(pageSize = 10)
     ){
