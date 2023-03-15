@@ -4,11 +4,9 @@ package com.example.flirtcompose.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,9 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.flirtcompose.R
-import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.theme.TransparentBlack
 
+
+private const val TAG = "ImageBelt"
 @Composable
 fun ImageBeltScreen(
     personViewModel: PersonViewModel,
@@ -35,7 +34,9 @@ fun ImageBeltScreen(
 
 
     Card(
-        modifier = modifier.fillMaxSize().padding(8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(8.dp),
         backgroundColor = TransparentBlack
     ) {
         Column() {
@@ -51,7 +52,8 @@ fun ImageBeltScreen(
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                     border = BorderStroke(0.dp,Color.Transparent),
                     modifier = Modifier
-                        .size(50.dp).weight(0.5f),
+                        .size(50.dp)
+                        .weight(0.5f),
                     contentPadding = PaddingValues(),
                     onClick = {navController.popBackStack()},
                 ) {
@@ -65,7 +67,9 @@ fun ImageBeltScreen(
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+
             ) {
                 if (index > 0){
                     OutlinedButton(

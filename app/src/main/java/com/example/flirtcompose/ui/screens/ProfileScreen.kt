@@ -51,7 +51,7 @@ fun ProfileScreen(personViewModel: PersonViewModel,navController:NavController,m
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        PersonalInfoCard(person = person)
+        PersonalInfoCard(person = person,navController)
         ButtonMenu()
         GalleryCard(person = person,navController, personViewModel = personViewModel)
         Text(text = person.greeting,color = Color.White)
@@ -61,15 +61,33 @@ fun ProfileScreen(personViewModel: PersonViewModel,navController:NavController,m
 
 
 @Composable
-fun PersonalInfoCard(person: Person){
+fun PersonalInfoCard(person: Person,navController: NavController){
     val preparedImg = HEADER + person.iurl_600
     val context = LocalContext.current
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.weight(1f)
+        ) {
+            OutlinedButton(
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                border = BorderStroke(0.dp,Color.Transparent),
+                modifier = Modifier
+                    .size(50.dp).weight(0.5f),
+                contentPadding = PaddingValues(),
+                onClick = {navController.popBackStack()},
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                    contentDescription = "chat",
+                    modifier = Modifier.size(25.dp)
+                )
+            }
+        }
 
         Card(
             modifier = Modifier
@@ -161,6 +179,7 @@ fun PersonalInfoCard(person: Person){
                 }
             }
         }
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
