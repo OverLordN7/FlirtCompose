@@ -1,5 +1,6 @@
 package com.example.flirtcompose.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,10 +10,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
+import androidx.paging.*
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.flirtcompose.RequestApplication
@@ -23,6 +21,7 @@ import com.example.flirtcompose.model.PersonPhoto
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -72,6 +71,29 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         }
     }
 
+    fun getFilteredPersonListBySex(sex: Int = 0){
+        val filterPager = Pager(
+            PagingConfig(pageSize = 10)
+        ){
+            PersonPagingSource(requestRepository)
+        }.flow.map {pagingData->
+            pagingData.filter { person->
+                person.sex == sex
+            }
+
+        }
+
+        viewModelScope.launch {
+            personUiState = PersonUiState.Loading
+            personUiState = try{
+                PersonUiState.Success(filterPager.cachedIn(viewModelScope))
+            }catch (e: IOException){
+                PersonUiState.Error
+            } catch (e: HttpException){
+                PersonUiState.Error
+            }
+        }
+    }
 
 
 

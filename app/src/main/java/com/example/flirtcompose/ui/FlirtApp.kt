@@ -23,7 +23,12 @@ fun FlirtApp(modifier: Modifier = Modifier){
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
         composable(route = Screen.HomeScreen.route){
-            HomeScreen(personViewModel,navController,personViewModel::getPersonList)
+            HomeScreen(
+                personViewModel,
+                navController,
+                personViewModel::getPersonList,
+                personViewModel::getFilteredPersonListBySex
+            )
         }
 
         composable(route = Screen.ProfileScreen.route){

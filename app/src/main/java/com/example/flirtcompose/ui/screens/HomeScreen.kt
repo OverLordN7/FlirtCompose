@@ -1,27 +1,32 @@
 package com.example.flirtcompose.ui.screens
 
 
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
 import kotlinx.coroutines.flow.Flow
@@ -35,15 +40,72 @@ fun HomeScreen(
     personViewModel: PersonViewModel,
     navController: NavController,
     retryAction: () -> Unit,
+    filterAction: (sex: Int) -> Unit,
     modifier: Modifier = Modifier
 ){
 
-    val state: PersonUiState = personViewModel.personUiState
+    val showDialog = remember { mutableStateOf(false) }
 
-    when(state){
-        is PersonUiState.Loading -> LoadingItem()
-        is PersonUiState.Error -> ErrorScreen(retryAction)
-        is PersonUiState.Success -> ResultScreen(state.personList,personViewModel,navController,retryAction)
+    val state: PersonUiState = personViewModel.personUiState
+    var menuState by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    if (showDialog.value){
+        FilterDialog(setShowDialog = {showDialog.value = it})
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(id = R.string.app_name))},
+                actions = {
+
+                    IconButton(onClick = retryAction) {
+                        Icon(Icons.Default.Refresh,"Return to Default List")
+                    }
+
+
+                    IconButton(onClick = {menuState = !menuState}) {
+                        Icon(Icons.Default.MoreVert,"Menu")
+                    }
+
+                    DropdownMenu(
+                        expanded = menuState,
+                        onDismissRequest = { menuState = false}
+                    ) {
+
+                        DropdownMenuItem(onClick = {
+                            showDialog.value = true
+                            //filterAction(0)
+                        }) {
+                            Text(text = "Filter")
+                        }
+                        DropdownMenuItem(onClick = {
+                            Toast.makeText(context,"Search",Toast.LENGTH_SHORT).show()
+
+                        }) {
+                            Text(text = "Search")
+                        }
+
+                    }
+                }
+            )
+        },
+
+        ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it),
+            color = MaterialTheme.colors.background
+        ) {
+            when(state){
+                is PersonUiState.Loading -> LoadingItem()
+                is PersonUiState.Error -> ErrorScreen(retryAction)
+                is PersonUiState.Success -> ResultScreen(state.personList,personViewModel,navController,retryAction)
+            }
+        }
     }
 }
 
@@ -140,39 +202,34 @@ fun ResultScreen(
         items(personList.itemCount){
             personList[it]?.let { it1 -> PersonCard(it1,navController,personViewModel) }
         }
+    }
+}
 
+@Composable
+fun FilterDialog(setShowDialog: (Boolean) -> Unit){
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(600.dp)
+            ){
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Test")
+                    Button(onClick = {
+                        setShowDialog(false)
+                    }) {
+                        Text(text = "Done")
+                    }
 
-//        when(personList.loadState.append){
-//            is LoadState.NotLoading -> Unit
-//            LoadState.Loading -> {
-//                item {
-//                    LoadingItem()
-//                }
-//            }
-//            is LoadState.Error -> {
-//                item {
-//                    Text(text = "Error1!!", color = Color.White)
-//                }
-//            }
-//        }
-//
-//        when(personList.loadState.refresh){
-//            is LoadState.NotLoading -> Unit
-//            LoadState.Loading -> {
-//                item {
-//                    Box(
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentAlignment = Alignment.Center,
-//                        content = {
-//                            CircularProgressIndicator()
-//                        }
-//                    )
-//                }
-//            }
-//            is LoadState.Error ->
-//                item{
-//                    Text(text = "Error2!!", color = Color.White)
-//                }
-//        }
+                }
+            }
+
+        }
     }
 }
