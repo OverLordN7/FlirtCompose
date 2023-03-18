@@ -1,7 +1,6 @@
 package com.example.flirtcompose.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,10 +14,9 @@ import com.example.flirtcompose.ui.screens.PersonViewModel
 import com.example.flirtcompose.ui.screens.ProfileScreen
 
 @Composable
-fun FlirtApp(modifier: Modifier = Modifier){
+fun FlirtApp(){
 
     val personViewModel: PersonViewModel = viewModel(factory = PersonViewModel.Factory)
-    //Nav host section
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
@@ -27,7 +25,7 @@ fun FlirtApp(modifier: Modifier = Modifier){
                 personViewModel,
                 navController,
                 personViewModel::getPersonList,
-                personViewModel::getFilteredPersonListBySex
+                personViewModel::getFilteredPersonListBySex,
             )
         }
 
