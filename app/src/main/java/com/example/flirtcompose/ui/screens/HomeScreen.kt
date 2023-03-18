@@ -1,95 +1,147 @@
 package com.example.flirtcompose.ui.screens
 
+
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
+import com.example.flirtcompose.ui.theme.Purple200
+import kotlinx.coroutines.flow.Flow
 
 
 private const val TAG = "HomeScreen"
 private const val HEADER = "http://dating.mts.by"
 
 @Composable
-fun HomeScreen(personViewModel: PersonViewModel,navController: NavController,modifier: Modifier = Modifier){
-    DisplayListPersons(personViewModel,navController)
+fun HomeScreen(
+    personViewModel: PersonViewModel,
+    navController: NavController,
+    retryAction: () -> Unit,
+    filterAction: (sex: Int) -> Unit,
+    modifier: Modifier = Modifier
+){
 
-}
+    val showDialog = remember { mutableStateOf(false) }
 
-@Composable
-fun DisplayListPersons(personViewModel: PersonViewModel,navController: NavController){
-    val personlist = personViewModel.personPager.collectAsLazyPagingItems()
 
-    LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
-        items(personlist.itemCount){
-            personlist[it]?.let { it1 -> PersonCard(it1,navController,personViewModel) }
-        }
+    val state: PersonUiState = personViewModel.personUiState
+    var menuState by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-        when(personlist.loadState.append){
-            is LoadState.NotLoading -> Unit
-            LoadState.Loading -> {
-                item {
-                    LoadingItem()
-                }
-            }
-            is LoadState.Error -> {
-                item {
-
-                }
-            }
-        }
-
-        when(personlist.loadState.refresh){
-            is LoadState.NotLoading -> Unit
-            LoadState.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                        content = {
-                            CircularProgressIndicator()
-                        }
-                    )
-                }
-            }
-            is LoadState.Error -> TODO()
-        }
+    if (showDialog.value){
+        FilterDialog(setShowDialog = {showDialog.value = it},filterAction)
     }
 
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(id = R.string.app_name))},
+                actions = {
 
+                    IconButton(onClick = retryAction) {
+                        Icon(Icons.Default.Refresh,"Return to Default List")
+                    }
+
+
+                    IconButton(onClick = {menuState = !menuState}) {
+                        Icon(Icons.Default.MoreVert,"Menu")
+                    }
+
+                    DropdownMenu(
+                        expanded = menuState,
+                        onDismissRequest = { menuState = false}
+                    ) {
+
+                        DropdownMenuItem(onClick = {
+                            showDialog.value = true
+                        }) {
+                            Text(text = "Filter")
+                        }
+                        DropdownMenuItem(onClick = {
+                            Toast.makeText(context,"Search",Toast.LENGTH_SHORT).show()
+
+                        }) {
+                            Text(text = "Search")
+                        }
+
+                    }
+                }
+            )
+        },
+
+        ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it),
+            color = MaterialTheme.colors.background
+        ) {
+            when(state){
+                is PersonUiState.Loading -> LoadingItem()
+                is PersonUiState.Error -> ErrorScreen(retryAction)
+                is PersonUiState.Success -> ResultScreen(state.personList,personViewModel,navController,retryAction)
+            }
+        }
+    }
 }
 
 @Composable
 fun LoadingItem(modifier: Modifier = Modifier){
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
             modifier = Modifier
-                .width(42.dp)
-                .height(42.dp)
+                .width(80.dp)
+                .height(80.dp)
                 .padding(8.dp),
             strokeWidth = 5.dp
         )
+    }
+}
+
+@Composable
+fun ErrorScreen(retryAction: () -> Unit ,modifier: Modifier = Modifier){
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column() {
+            Text(text = "Something went wrong. Try Again:(", color = Color.White)
+            Button(onClick = retryAction) {
+                Text(text = "Again", color = Color.White)
+            }
+        }
     }
 }
 
@@ -125,5 +177,134 @@ fun PersonCard(person: Person, navController: NavController, personViewModel: Pe
             Text(person.photos.size.toString())
 
         }
+    }
+}
+
+@Composable
+fun ResultScreen(
+    flowList: Flow<PagingData<Person>>,
+    personViewModel: PersonViewModel,
+    navController: NavController,
+    retryAction: () -> Unit
+){
+    val personList = flowList.collectAsLazyPagingItems()
+
+    when(personList.loadState.append){
+        is LoadState.NotLoading -> Unit
+        LoadState.Loading -> { LoadingItem() }
+        is LoadState.Error -> { Text(text = "Error3!!", color = Color.White) }
+    }
+
+    when(personList.loadState.refresh){
+        is LoadState.NotLoading -> Unit
+        LoadState.Loading -> { LoadingItem() }
+        is LoadState.Error -> { ErrorScreen(retryAction) }
+    }
+
+    LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
+        items(personList.itemCount){
+            personList[it]?.let { it1 -> PersonCard(it1,navController,personViewModel) }
+        }
+    }
+}
+
+@Composable
+fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> Unit){
+
+    val isSexSelected = remember { mutableStateOf(2) }
+    val context = LocalContext.current
+
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(600.dp)
+            ){
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Test")
+                    CustomSwitcher(isSexSelected)
+                    Button(onClick = {
+                        setShowDialog(false)
+                        Toast.makeText(context,"Sex status: ${isSexSelected.value}",Toast.LENGTH_SHORT).show()
+                        filterAction(isSexSelected.value)
+
+                    }) {
+                        Text(text = "Done")
+                    }
+
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
+fun CustomSwitcher(sex: MutableState<Int>){
+    val states = listOf(
+        "Female",
+        "Both",
+        "Male",
+    )
+
+
+    var selectedState by remember { mutableStateOf(states[1])}
+
+    val onStateChange = { text: String ->
+        selectedState = text
+    }
+
+    when(selectedState){
+        states[0] -> sex.value = 0
+        states[2] -> sex.value = 1
+        states[1] -> sex.value = 2
+    }
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        elevation = 4.dp,
+        modifier = Modifier.wrapContentSize()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(24.dp))
+                .background(Color.LightGray)
+        ) {
+            states.forEach { text->
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(shape = RoundedCornerShape(24.dp))
+                        .clickable {
+                            onStateChange(text)
+
+                        }
+                        .background(
+                            if (text == selectedState) {
+                                Purple200
+                            } else {
+                                Color.LightGray
+                            }
+                        )
+                        .padding(
+                            vertical = 12.dp,
+                            horizontal = 16.dp
+                        )
+                        .size(width = 40.dp, height = 20.dp),
+                )
+
+            }
+        }
+
     }
 }
