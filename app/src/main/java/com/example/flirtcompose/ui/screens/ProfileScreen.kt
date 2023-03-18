@@ -10,12 +10,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Card
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,13 +31,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.flirtcompose.ui.theme.*
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
+import com.example.flirtcompose.ui.theme.*
 
 
 private const val TAG = "ProfileScreen"
@@ -77,7 +78,8 @@ fun PersonalInfoCard(person: Person,navController: NavController){
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                 border = BorderStroke(0.dp,Color.Transparent),
                 modifier = Modifier
-                    .size(50.dp).weight(0.5f),
+                    .size(50.dp)
+                    .weight(0.5f),
                 contentPadding = PaddingValues(),
                 onClick = {navController.popBackStack()},
             ) {

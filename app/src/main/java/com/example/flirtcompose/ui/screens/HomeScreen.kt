@@ -1,7 +1,6 @@
 package com.example.flirtcompose.ui.screens
 
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,85 +44,69 @@ fun HomeScreen(
     filterAction: (sex: Int) -> Unit,
     modifier: Modifier = Modifier
 ){
-
     val showDialog = remember { mutableStateOf(false) }
-
+    var menuState by remember { mutableStateOf(false) }
 
     val state: PersonUiState = personViewModel.personUiState
-    var menuState by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     if (showDialog.value){
-        FilterDialog(setShowDialog = {showDialog.value = it},filterAction)
+        FilterDialog(
+            setShowDialog = {showDialog.value = it},
+            filterAction = filterAction,
+        )
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.app_name))},
+                title = { Text(text = stringResource(id = R.string.app_name)) },
                 actions = {
 
                     IconButton(onClick = retryAction) {
                         Icon(Icons.Default.Refresh,"Return to Default List")
                     }
 
-
-                    IconButton(onClick = {menuState = !menuState}) {
+                    IconButton( onClick = { menuState = !menuState } ) {
                         Icon(Icons.Default.MoreVert,"Menu")
                     }
 
-                    DropdownMenu(
-                        expanded = menuState,
-                        onDismissRequest = { menuState = false}
-                    ) {
-
-                        DropdownMenuItem(onClick = {
-                            showDialog.value = true
-                        }) {
+                    DropdownMenu( expanded = menuState, onDismissRequest = { menuState = false} ) {
+                        DropdownMenuItem( onClick = { showDialog.value = true } ) {
                             Text(text = "Filter")
                         }
-                        DropdownMenuItem(onClick = {
-                            Toast.makeText(context,"Search",Toast.LENGTH_SHORT).show()
-
-                        }) {
-                            Text(text = "Search")
-                        }
-
                     }
                 }
             )
         },
-
-        ) {
+    ) {
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it),
-            color = MaterialTheme.colors.background
+            color = MaterialTheme.colors.background,
+            modifier = Modifier.fillMaxSize().padding(it),
         ) {
             when(state){
-                is PersonUiState.Loading -> LoadingItem()
+                is PersonUiState.Loading -> LoadingScreen()
                 is PersonUiState.Error -> ErrorScreen(retryAction)
-                is PersonUiState.Success -> ResultScreen(state.personList,personViewModel,navController,retryAction)
+                is PersonUiState.Success -> ResultScreen(
+                    flowList = state.personList,
+                    personViewModel = personViewModel,
+                    navController = navController,
+                    retryAction = retryAction
+                )
             }
         }
     }
 }
 
 @Composable
-fun LoadingItem(modifier: Modifier = Modifier){
+fun LoadingScreen(modifier: Modifier = Modifier){
     Box(
-        modifier = modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = modifier.fillMaxSize(),
     ) {
         CircularProgressIndicator(
-            modifier = Modifier
-                .width(80.dp)
-                .height(80.dp)
-                .padding(8.dp),
-            strokeWidth = 5.dp
+            strokeWidth = 5.dp,
+            modifier = Modifier.size(80.dp).padding(8.dp),
         )
     }
 }
@@ -132,11 +114,10 @@ fun LoadingItem(modifier: Modifier = Modifier){
 @Composable
 fun ErrorScreen(retryAction: () -> Unit ,modifier: Modifier = Modifier){
     Box(
-        modifier = modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = modifier.fillMaxSize(),
     ) {
-        Column() {
+        Column {
             Text(text = "Something went wrong. Try Again:(", color = Color.White)
             Button(onClick = retryAction) {
                 Text(text = "Again", color = Color.White)
@@ -146,7 +127,10 @@ fun ErrorScreen(retryAction: () -> Unit ,modifier: Modifier = Modifier){
 }
 
 @Composable
-fun PersonCard(person: Person, navController: NavController, personViewModel: PersonViewModel
+fun PersonCard(
+    person: Person,
+    navController: NavController,
+    personViewModel: PersonViewModel
 ){
     val imageURL = HEADER + person.iurl_600
 
@@ -157,25 +141,20 @@ fun PersonCard(person: Person, navController: NavController, personViewModel: Pe
             .border(4.dp, Color.Black, RoundedCornerShape(8))
             .clickable {
                 personViewModel.person = person
-
                 navController.navigate(Screen.ProfileScreen.route)
             },
     ) {
         Column(
-            modifier = Modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             AsyncImage(
                 model = imageURL,
                 contentDescription = "image",
-                modifier = Modifier
-                    .padding(4.dp)
+                modifier = Modifier.padding(4.dp)
             )
-
             //TODO DELETE this line after debug
             Text(person.photos.size.toString())
-
         }
     }
 }
@@ -191,19 +170,25 @@ fun ResultScreen(
 
     when(personList.loadState.append){
         is LoadState.NotLoading -> Unit
-        LoadState.Loading -> { LoadingItem() }
-        is LoadState.Error -> { Text(text = "Error3!!", color = Color.White) }
+        LoadState.Loading -> { LoadingScreen() }
+        is LoadState.Error -> { ErrorScreen(retryAction) }
     }
 
     when(personList.loadState.refresh){
         is LoadState.NotLoading -> Unit
-        LoadState.Loading -> { LoadingItem() }
+        LoadState.Loading -> { LoadingScreen() }
         is LoadState.Error -> { ErrorScreen(retryAction) }
     }
 
     LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
-        items(personList.itemCount){
-            personList[it]?.let { it1 -> PersonCard(it1,navController,personViewModel) }
+        items(personList.itemCount){ index ->
+            personList[index]?.let { person ->
+                PersonCard(
+                    person = person,
+                    navController = navController,
+                    personViewModel = personViewModel,
+                )
+            }
         }
     }
 }
@@ -212,64 +197,53 @@ fun ResultScreen(
 fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> Unit){
 
     val isSexSelected = remember { mutableStateOf(2) }
-    val context = LocalContext.current
 
-    Dialog(onDismissRequest = {setShowDialog(false)}) {
+    Dialog(
+        onDismissRequest = { setShowDialog(false) }
+    ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = Color.White
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(600.dp)
-            ){
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Test")
-                    CustomSwitcher(isSexSelected)
-                    Button(onClick = {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .size(600.dp)
+                    .padding(8.dp)
+            ) {
+                CustomSwitcher(isSexSelected)
+                Button(
+                    onClick = {
                         setShowDialog(false)
-                        Toast.makeText(context,"Sex status: ${isSexSelected.value}",Toast.LENGTH_SHORT).show()
                         filterAction(isSexSelected.value)
-
-                    }) {
-                        Text(text = "Done")
                     }
-
+                ) {
+                    Text(text = "Confirm")
                 }
             }
-
         }
     }
 }
 
 @Composable
 fun CustomSwitcher(sex: MutableState<Int>){
-    val states = listOf(
-        "Female",
-        "Both",
-        "Male",
-    )
 
-
+    val states = listOf("Female","Both", "Male")
     var selectedState by remember { mutableStateOf(states[1])}
+    val onStateChange = { text: String -> selectedState = text }
 
-    val onStateChange = { text: String ->
-        selectedState = text
-    }
-
-    when(selectedState){
-        states[0] -> sex.value = 0
-        states[2] -> sex.value = 1
-        states[1] -> sex.value = 2
+    sex.value = when(selectedState){
+        states[0] -> 0
+        states[2] -> 1
+        else -> 2
     }
 
     Surface(
         shape = RoundedCornerShape(24.dp),
         elevation = 4.dp,
-        modifier = Modifier.wrapContentSize()
+        modifier = Modifier
+            .wrapContentSize()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -285,26 +259,12 @@ fun CustomSwitcher(sex: MutableState<Int>){
                     fontSize = 12.sp,
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(24.dp))
-                        .clickable {
-                            onStateChange(text)
-
-                        }
-                        .background(
-                            if (text == selectedState) {
-                                Purple200
-                            } else {
-                                Color.LightGray
-                            }
-                        )
-                        .padding(
-                            vertical = 12.dp,
-                            horizontal = 16.dp
-                        )
+                        .clickable {onStateChange(text)}
+                        .background(if (text == selectedState) Purple200 else Color.LightGray)
+                        .padding(vertical = 12.dp, horizontal = 16.dp)
                         .size(width = 40.dp, height = 20.dp),
                 )
-
             }
         }
-
     }
 }
