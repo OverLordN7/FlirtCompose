@@ -72,25 +72,30 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
     }
 
     fun getFilteredPersonListBySex(sex: Int = 0){
-        val filterPager = Pager(
-            PagingConfig(pageSize = 10)
-        ){
-            PersonPagingSource(requestRepository)
-        }.flow.map {pagingData->
-            pagingData.filter { person->
-                person.sex == sex
+
+        if (sex == 2){
+            getPersonList()
+        } else{
+            val filterPager = Pager(
+                PagingConfig(pageSize = 10)
+            ){
+                PersonPagingSource(requestRepository)
+            }.flow.map {pagingData->
+                pagingData.filter { person->
+                    person.sex == sex
+                }
+
             }
 
-        }
-
-        viewModelScope.launch {
-            personUiState = PersonUiState.Loading
-            personUiState = try{
-                PersonUiState.Success(filterPager.cachedIn(viewModelScope))
-            }catch (e: IOException){
-                PersonUiState.Error
-            } catch (e: HttpException){
-                PersonUiState.Error
+            viewModelScope.launch {
+                personUiState = PersonUiState.Loading
+                personUiState = try{
+                    PersonUiState.Success(filterPager.cachedIn(viewModelScope))
+                }catch (e: IOException){
+                    PersonUiState.Error
+                } catch (e: HttpException){
+                    PersonUiState.Error
+                }
             }
         }
     }

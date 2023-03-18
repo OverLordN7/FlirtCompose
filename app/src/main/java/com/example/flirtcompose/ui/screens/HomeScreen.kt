@@ -2,6 +2,7 @@ package com.example.flirtcompose.ui.screens
 
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -29,6 +31,7 @@ import coil.compose.AsyncImage
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
+import com.example.flirtcompose.ui.theme.Purple200
 import kotlinx.coroutines.flow.Flow
 
 
@@ -46,12 +49,13 @@ fun HomeScreen(
 
     val showDialog = remember { mutableStateOf(false) }
 
+
     val state: PersonUiState = personViewModel.personUiState
     var menuState by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     if (showDialog.value){
-        FilterDialog(setShowDialog = {showDialog.value = it})
+        FilterDialog(setShowDialog = {showDialog.value = it},filterAction)
     }
 
     Scaffold(
@@ -77,7 +81,6 @@ fun HomeScreen(
 
                         DropdownMenuItem(onClick = {
                             showDialog.value = true
-                            //filterAction(0)
                         }) {
                             Text(text = "Filter")
                         }
@@ -206,7 +209,11 @@ fun ResultScreen(
 }
 
 @Composable
-fun FilterDialog(setShowDialog: (Boolean) -> Unit){
+fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> Unit){
+
+    val isSexSelected = remember { mutableStateOf(2) }
+    val context = LocalContext.current
+
     Dialog(onDismissRequest = {setShowDialog(false)}) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -221,8 +228,12 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit){
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = "Test")
+                    CustomSwitcher(isSexSelected)
                     Button(onClick = {
                         setShowDialog(false)
+                        Toast.makeText(context,"Sex status: ${isSexSelected.value}",Toast.LENGTH_SHORT).show()
+                        filterAction(isSexSelected.value)
+
                     }) {
                         Text(text = "Done")
                     }
@@ -231,5 +242,69 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit){
             }
 
         }
+    }
+}
+
+@Composable
+fun CustomSwitcher(sex: MutableState<Int>){
+    val states = listOf(
+        "Female",
+        "Both",
+        "Male",
+    )
+
+
+    var selectedState by remember { mutableStateOf(states[1])}
+
+    val onStateChange = { text: String ->
+        selectedState = text
+    }
+
+    when(selectedState){
+        states[0] -> sex.value = 0
+        states[2] -> sex.value = 1
+        states[1] -> sex.value = 2
+    }
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        elevation = 4.dp,
+        modifier = Modifier.wrapContentSize()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(24.dp))
+                .background(Color.LightGray)
+        ) {
+            states.forEach { text->
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clip(shape = RoundedCornerShape(24.dp))
+                        .clickable {
+                            onStateChange(text)
+
+                        }
+                        .background(
+                            if (text == selectedState) {
+                                Purple200
+                            } else {
+                                Color.LightGray
+                            }
+                        )
+                        .padding(
+                            vertical = 12.dp,
+                            horizontal = 16.dp
+                        )
+                        .size(width = 40.dp, height = 20.dp),
+                )
+
+            }
+        }
+
     }
 }
