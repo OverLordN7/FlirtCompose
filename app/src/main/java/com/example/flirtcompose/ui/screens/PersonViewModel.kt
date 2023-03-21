@@ -11,18 +11,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.paging.*
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.flirtcompose.RequestApplication
 import com.example.flirtcompose.data.PersonPagingSource
 import com.example.flirtcompose.data.RequestRepository
 import com.example.flirtcompose.model.Person
-import com.example.flirtcompose.model.PersonPhoto
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -71,20 +65,14 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         }
     }
 
-    fun getFilteredPersonListBySex(sex: Int = 0){
+    fun getFilteredPersonList(sex: Int = 0, ageStartPosition: Int = 0, ageEndPosition: Int = 100){
 
-        if (sex == 2){
-            getPersonList()
-        } else{
-            val filterPager = Pager(
-                PagingConfig(pageSize = 10)
-            ){
+            val filterPager = Pager(PagingConfig(pageSize = 10)){
                 PersonPagingSource(requestRepository)
             }.flow.map {pagingData->
                 pagingData.filter { person->
-                    person.sex == sex
+                    filter(person,sex,ageStartPosition,ageEndPosition)
                 }
-
             }
 
             viewModelScope.launch {
@@ -97,7 +85,29 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
                     PersonUiState.Error
                 }
             }
+
+    }
+
+    private fun filter(person: Person,sex: Int,ageStartPosition: Int,ageEndPosition: Int): Boolean{
+
+        val age = convertStringAgeToInt(person.age)
+
+        Log.d(TAG, "filter person city: ${person.city}")
+
+        return if (sex == 2){
+            //neglect this parameter
+            (age in ageStartPosition..ageEndPosition)
+        } else{
+            person.sex == sex && (age in ageStartPosition..ageEndPosition)
         }
+    }
+    private fun convertStringAgeToInt(age: String): Int{
+        // clean string from spaces ' '
+        var rawAge = age.replace(" ","")
+        // clean string from letters of russian alphabet
+        rawAge = rawAge.replace("[а-я]".toRegex(),"")
+
+        return rawAge.toInt()
     }
 
 

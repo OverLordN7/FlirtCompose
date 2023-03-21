@@ -25,7 +25,7 @@ fun FlirtApp(){
                 personViewModel,
                 navController,
                 personViewModel::getPersonList,
-                personViewModel::getFilteredPersonListBySex,
+                personViewModel::getFilteredPersonList,
             )
         }
 

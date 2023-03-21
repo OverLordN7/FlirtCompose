@@ -1,6 +1,8 @@
 package com.example.flirtcompose.ui.screens
 
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,7 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -41,7 +46,7 @@ fun HomeScreen(
     personViewModel: PersonViewModel,
     navController: NavController,
     retryAction: () -> Unit,
-    filterAction: (sex: Int) -> Unit,
+    filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -82,7 +87,9 @@ fun HomeScreen(
     ) {
         Surface(
             color = MaterialTheme.colors.background,
-            modifier = Modifier.fillMaxSize().padding(it),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it),
         ) {
             when(state){
                 is PersonUiState.Loading -> LoadingScreen()
@@ -106,7 +113,9 @@ fun LoadingScreen(modifier: Modifier = Modifier){
     ) {
         CircularProgressIndicator(
             strokeWidth = 5.dp,
-            modifier = Modifier.size(80.dp).padding(8.dp),
+            modifier = Modifier
+                .size(80.dp)
+                .padding(8.dp),
         )
     }
 }
@@ -194,9 +203,11 @@ fun ResultScreen(
 }
 
 @Composable
-fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> Unit){
+fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit){
 
     val isSexSelected = remember { mutableStateOf(2) }
+    val startPosition = remember { mutableStateOf(0) }
+    val endPosition = remember { mutableStateOf(100) }
 
     Dialog(
         onDismissRequest = { setShowDialog(false) }
@@ -212,14 +223,52 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> U
                     .size(600.dp)
                     .padding(8.dp)
             ) {
-                CustomSwitcher(isSexSelected)
-                Button(
-                    onClick = {
-                        setShowDialog(false)
-                        filterAction(isSexSelected.value)
-                    }
+                Text(
+                    text = "Filter",
+                    color = Color.Black,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                CustomSlider(
+                    startPosition,
+                    endPosition,
+                    modifier = Modifier.weight(2f)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Column(
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(4.dp)
                 ) {
-                    Text(text = "Confirm")
+                    Text("Select gender: ", modifier = Modifier.padding(bottom = 4.dp))
+                    CustomSwitcher(isSexSelected)
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Button(
+                        onClick = {
+                            setShowDialog(false)
+                            filterAction(
+                                isSexSelected.value,
+                                startPosition.value,
+                                endPosition.value
+                            )
+                        }
+                    ) {
+                        Text(text = "Confirm")
+                    }
                 }
             }
         }
@@ -227,7 +276,7 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int) -> U
 }
 
 @Composable
-fun CustomSwitcher(sex: MutableState<Int>){
+fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
 
     val states = listOf("Female","Both", "Male")
     var selectedState by remember { mutableStateOf(states[1])}
@@ -242,7 +291,7 @@ fun CustomSwitcher(sex: MutableState<Int>){
     Surface(
         shape = RoundedCornerShape(24.dp),
         elevation = 4.dp,
-        modifier = Modifier
+        modifier = modifier
             .wrapContentSize()
     ) {
         Row(
@@ -259,12 +308,61 @@ fun CustomSwitcher(sex: MutableState<Int>){
                     fontSize = 12.sp,
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(24.dp))
-                        .clickable {onStateChange(text)}
+                        .clickable { onStateChange(text) }
                         .background(if (text == selectedState) Purple200 else Color.LightGray)
                         .padding(vertical = 12.dp, horizontal = 16.dp)
                         .size(width = 40.dp, height = 20.dp),
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun CustomSlider(
+    startPosition: MutableState<Int>,
+    endPosition: MutableState<Int>,
+    modifier: Modifier = Modifier
+){
+    var sliderStatus by remember { mutableStateOf(20f..100f) }
+    var start by remember { mutableStateOf(20) }
+    var end by remember { mutableStateOf(100) }
+
+    Card(
+        elevation = 4.dp,
+        modifier = modifier
+        .padding(8.dp)
+        .fillMaxWidth()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Select preferable age: ")
+            RangeSlider(
+                values = sliderStatus,
+                onValueChange = {sliderStatus_ ->
+                    sliderStatus = sliderStatus_
+                },
+                valueRange = 20f..100f,
+                onValueChangeFinished = {
+                    Log.d(TAG, "Start: ${sliderStatus.start}, End: ${sliderStatus.endInclusive}")
+
+                    startPosition.value = sliderStatus.start.toInt()
+                    endPosition.value = sliderStatus.endInclusive.toInt()
+
+                },
+                steps = 0,
+                modifier = Modifier.padding(4.dp)
+            )
+
+            start= sliderStatus.start.toInt()
+            end = sliderStatus.endInclusive.toInt()
+
+            Text(text = "Start: ${sliderStatus.start.toInt()}, End: ${sliderStatus.endInclusive.toInt()}")
+
+        }
+
     }
 }

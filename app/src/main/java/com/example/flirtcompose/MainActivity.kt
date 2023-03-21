@@ -6,9 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import com.example.flirtcompose.ui.FlirtApp
 import com.example.flirtcompose.ui.theme.FlirtComposeTheme
+import com.example.flirtcompose.ui.theme.GradientDarkPurple
+import com.example.flirtcompose.ui.theme.GradientPurple
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
