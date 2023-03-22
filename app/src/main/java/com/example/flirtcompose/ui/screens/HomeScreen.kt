@@ -34,6 +34,8 @@ import coil.compose.AsyncImage
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
+import com.example.flirtcompose.ui.theme.Crimson100
+import com.example.flirtcompose.ui.theme.Grey100
 import com.example.flirtcompose.ui.theme.Purple200
 import kotlinx.coroutines.flow.Flow
 
@@ -77,7 +79,11 @@ fun HomeScreen(
                     }
 
                     DropdownMenu( expanded = menuState, onDismissRequest = { menuState = false} ) {
-                        DropdownMenuItem( onClick = { showDialog.value = true } ) {
+                        DropdownMenuItem(
+                            onClick = {
+                                showDialog.value = true
+                                menuState = false
+                            } ) {
                             Text(text = "Filter")
                         }
                     }
@@ -299,20 +305,24 @@ fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(24.dp))
-                .background(Color.LightGray)
+                .background(Grey100)
         ) {
             states.forEach { text->
-                Text(
-                    text = text,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(shape = RoundedCornerShape(24.dp))
-                        .clickable { onStateChange(text) }
-                        .background(if (text == selectedState) Purple200 else Color.LightGray)
-                        .padding(vertical = 12.dp, horizontal = 16.dp)
-                        .size(width = 40.dp, height = 20.dp),
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = text,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(24.dp))
+                            .clickable { onStateChange(text) }
+                            .background(if (text == selectedState) Crimson100 else Grey100)
+                            .padding(vertical = 12.dp, horizontal = 16.dp)
+                            .size(width = 40.dp, height = 20.dp),
+                    )
+                }
             }
         }
     }
@@ -332,8 +342,8 @@ fun CustomSlider(
     Card(
         elevation = 4.dp,
         modifier = modifier
-        .padding(8.dp)
-        .fillMaxWidth()
+            .padding(8.dp)
+            .fillMaxWidth()
     ) {
         Column(
             verticalArrangement = Arrangement.Center,

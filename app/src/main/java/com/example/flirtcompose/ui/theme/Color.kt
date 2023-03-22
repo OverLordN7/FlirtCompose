@@ -22,3 +22,11 @@ val TransparentBlack = Color(0x72000000)
 
 val GradientPurple = Color(0xFF6D016E)
 val GradientDarkPurple = Color(0xFF010101)
+
+
+//Dark Theme
+val Grey900 = Color(0xFF050505)
+val Crimson50 = Color(0xFFED5C54)
+val Crimson100 = Color(0xFFEA4849)
+val Grey100 = Color(0xFF2B2929)
+val Grey50 = Color(0xFFFFFFFF)

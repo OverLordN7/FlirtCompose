@@ -5,23 +5,22 @@ import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -44,19 +43,42 @@ private const val HEADER = "http://dating.mts.by"
 
 
 @Composable
-fun ProfileScreen(personViewModel: PersonViewModel,navController:NavController,modifier: Modifier = Modifier){
+fun ProfileScreen(
+    personViewModel: PersonViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     val person = personViewModel.person
 
-    Column(
+    Scaffold(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        topBar = {
+            TopAppBar( title = { Text(text = stringResource(id = R.string.app_name)) })
+        },
     ) {
-
-        PersonalInfoCard(person = person,navController)
-        ButtonMenu()
-        GalleryCard(person = person,navController, personViewModel = personViewModel)
-        Text(text = person.greeting,color = Color.White)
-
+        Surface(
+            color = MaterialTheme.colors.background,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+            LazyColumn(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    PersonalInfoCard(person = person, navController)
+                }
+                item {
+                    ButtonMenu()
+                }
+                item {
+                    GalleryCard(person = person, navController, personViewModel = personViewModel)
+                }
+                item {
+                    Text(text = person.greeting, color = Color.White)
+                }
+            }
+        }
     }
 }
 
@@ -102,7 +124,7 @@ fun PersonalInfoCard(person: Person,navController: NavController){
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(8.dp)
             ) {
-                Row(){
+                Row {
                     //Main Image
                     //Rainbow border for image setup
                     val rainbowColorBrush = remember {
@@ -133,7 +155,7 @@ fun PersonalInfoCard(person: Person,navController: NavController){
                         ,
                     )
                 }
-                Row(){
+                Row {
                     //Name
                     Text(
                         text = person.name,
