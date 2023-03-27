@@ -4,13 +4,16 @@ package com.example.flirtcompose.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -64,7 +67,8 @@ fun ImageBeltScreen(
                     )
                 }
             }
-            ImageItem(index = index, list = list, modifier = Modifier.weight(1f))
+            //ImageItem(index = index, list = list, modifier = Modifier.weight(1f))
+            ImageItem2(index = index, list = list,)
             Spacer(modifier = Modifier.weight(1f))
         }
     }
@@ -99,6 +103,59 @@ fun ImageItem(index: MutableState<Int>,list: List<String>,modifier: Modifier = M
             model = list[index.value],
             contentDescription = "image",
             modifier = Modifier.weight(3f)
+        )
+
+        if (index.value < list.size-1){
+            OutlinedButton(
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                border = BorderStroke(0.dp,Color.Transparent),
+                modifier = Modifier
+                    .size(25.dp)
+                    .weight(0.5f),
+                contentPadding = PaddingValues(),
+                onClick = { index.value +=1},
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_right),
+                    contentDescription = "chat",
+                )
+            }
+        }else{
+            Spacer(modifier = Modifier.weight(0.5f))
+        }
+    }
+}
+
+@Composable
+fun ImageItem2(index: MutableState<Int>,list: List<String>,modifier: Modifier = Modifier){
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+
+        ) {
+        if (index.value > 0){
+            OutlinedButton(
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+                border = BorderStroke(0.dp,Color.Transparent),
+                modifier = Modifier
+                    .size(25.dp)
+                    .weight(0.5f),
+                contentPadding = PaddingValues(),
+                onClick = { index.value-=1},
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_arrow_left),
+                    contentDescription = "chat",
+                )
+            }
+        } else{
+            Spacer(modifier = Modifier.weight(0.5f))
+        }
+        AsyncImage(
+            model = list[index.value],
+            contentDescription = "image",
+            modifier = Modifier.weight(8f),
+            contentScale = ContentScale.Fit
         )
 
         if (index.value < list.size-1){

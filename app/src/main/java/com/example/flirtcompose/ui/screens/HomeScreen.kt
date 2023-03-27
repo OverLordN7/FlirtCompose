@@ -1,8 +1,6 @@
 package com.example.flirtcompose.ui.screens
 
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,7 +32,6 @@ import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.theme.Crimson100
 import com.example.flirtcompose.ui.theme.Grey100
-import com.example.flirtcompose.ui.theme.Purple200
 import kotlinx.coroutines.flow.Flow
 
 
@@ -48,7 +43,13 @@ fun HomeScreen(
     personViewModel: PersonViewModel,
     navController: NavController,
     retryAction: () -> Unit,
-    filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit,
+    filterAction: (
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition: Int,
+        photoEndPosition: Int,
+    ) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -168,8 +169,6 @@ fun PersonCard(
                 contentDescription = "image",
                 modifier = Modifier.padding(4.dp)
             )
-            //TODO DELETE this line after debug
-            Text(person.photos.size.toString())
         }
     }
 }
@@ -209,11 +208,23 @@ fun ResultScreen(
 }
 
 @Composable
-fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit){
+fun FilterDialog(
+    setShowDialog: (Boolean) -> Unit,
+    filterAction: (
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition:Int,
+        photoEndPosition: Int,
+    ) -> Unit
+){
 
     val isSexSelected = remember { mutableStateOf(2) }
-    val startPosition = remember { mutableStateOf(0) }
+    val startPosition = remember { mutableStateOf(20) }
     val endPosition = remember { mutableStateOf(100) }
+
+    val startPositionPhoto = remember { mutableStateOf(1) }
+    val endPositionPhoto = remember { mutableStateOf(100) }
 
     Dialog(
         onDismissRequest = { setShowDialog(false) }
@@ -242,10 +253,21 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
                 CustomSlider(
                     startPosition,
                     endPosition,
-                    modifier = Modifier.weight(2f)
+                    "Select preferable age: ",
+                    20f..100f,
+                    modifier = Modifier.weight(3f)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                CustomSlider(
+                    startPositionPhoto,
+                    endPositionPhoto,
+                    "Select preferable photo number: ",
+                    1f..100f,
+                    modifier = Modifier.weight(3f)
+                )
+
 
                 Column(
                     modifier = Modifier
@@ -269,7 +291,9 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
                             filterAction(
                                 isSexSelected.value,
                                 startPosition.value,
-                                endPosition.value
+                                endPosition.value,
+                                startPositionPhoto.value,
+                                endPositionPhoto.value
                             )
                         }
                     ) {
@@ -333,11 +357,11 @@ fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
 fun CustomSlider(
     startPosition: MutableState<Int>,
     endPosition: MutableState<Int>,
+    title: String,
+    initialSliderStatus: ClosedFloatingPointRange<Float>,
     modifier: Modifier = Modifier
 ){
-    var sliderStatus by remember { mutableStateOf(20f..100f) }
-    var start by remember { mutableStateOf(20) }
-    var end by remember { mutableStateOf(100) }
+    var sliderStatus by remember { mutableStateOf(initialSliderStatus) }
 
     Card(
         elevation = 4.dp,
@@ -349,16 +373,14 @@ fun CustomSlider(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Select preferable age: ")
+            Text(text = title)
             RangeSlider(
                 values = sliderStatus,
                 onValueChange = {sliderStatus_ ->
                     sliderStatus = sliderStatus_
                 },
-                valueRange = 20f..100f,
+                valueRange = initialSliderStatus,
                 onValueChangeFinished = {
-                    Log.d(TAG, "Start: ${sliderStatus.start}, End: ${sliderStatus.endInclusive}")
-
                     startPosition.value = sliderStatus.start.toInt()
                     endPosition.value = sliderStatus.endInclusive.toInt()
 
@@ -366,12 +388,7 @@ fun CustomSlider(
                 steps = 0,
                 modifier = Modifier.padding(4.dp)
             )
-
-            start= sliderStatus.start.toInt()
-            end = sliderStatus.endInclusive.toInt()
-
-            Text(text = "Start: ${sliderStatus.start.toInt()}, End: ${sliderStatus.endInclusive.toInt()}")
-
+            Text(text = "From: ${sliderStatus.start.toInt()}, to: ${sliderStatus.endInclusive.toInt()}")
         }
 
     }

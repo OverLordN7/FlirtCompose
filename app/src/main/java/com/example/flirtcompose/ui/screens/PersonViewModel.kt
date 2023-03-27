@@ -65,13 +65,26 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         }
     }
 
-    fun getFilteredPersonList(sex: Int = 0, ageStartPosition: Int = 0, ageEndPosition: Int = 100){
+    fun getFilteredPersonList(
+        sex: Int = 0,
+        ageStartPosition: Int = 0,
+        ageEndPosition: Int = 100,
+        photoStartPosition: Int = 1,
+        photoEndPosition: Int = 100,
+    ){
 
             val filterPager = Pager(PagingConfig(pageSize = 10)){
                 PersonPagingSource(requestRepository)
             }.flow.map {pagingData->
                 pagingData.filter { person->
-                    filter(person,sex,ageStartPosition,ageEndPosition)
+                    filter(
+                        person,
+                        sex,
+                        ageStartPosition,
+                        ageEndPosition,
+                        photoStartPosition,
+                        photoEndPosition
+                    )
                 }
             }
 
@@ -88,7 +101,14 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     }
 
-    private fun filter(person: Person,sex: Int,ageStartPosition: Int,ageEndPosition: Int): Boolean{
+    private fun filter(
+        person: Person,
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition: Int,
+        photoEndPosition: Int,
+    ): Boolean{
 
         val age = convertStringAgeToInt(person.age)
 
@@ -97,8 +117,11 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         return if (sex == 2){
             //neglect this parameter
             (age in ageStartPosition..ageEndPosition)
+                    && (person.photos.size in photoStartPosition..photoEndPosition)
         } else{
-            person.sex == sex && (age in ageStartPosition..ageEndPosition)
+            person.sex == sex
+                    && (age in ageStartPosition..ageEndPosition)
+                    && (person.photos.size in photoStartPosition..photoEndPosition)
         }
     }
     private fun convertStringAgeToInt(age: String): Int{
