@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FlirtCompose</string>
+    <string name="location">location</string>
+    <string name="not_implemented">В разработке.</string>
+    <string name="back_arrow_button">Кнопка действия "Назад"</string>
+    <string name="gallery">Галерея</string>
+    <string name="add_to_favorite">Добавить в избранное</string>
+    <string name="select_photo">Выбрать фото</string>
+    <string name="expand_gallery">Расширить Галерею</string>
+    <string name="favorite_button">Избранное</string>
+    <string name="chat_button">Сообщения</string>
+    <string name="like_button">Кпонка Понравилось</string>
+    <string name="refresh">Обновить</string>
+    <string name="menu">Меню</string>
+    <string name="filter">Фильтр</string>
+    <string name="error_message">Что-то пошло не так, попробуйте снова :(</string>
+    <string name="retry_button">Повторить</string>
+    <string name="slider_age_title">Выберете предпочитаемый возраст: </string>
+    <string name="slider_photo_title">Выберете предпочитаемое кол-во фото: </string>
+    <string name="switcher_title">Выберете пол: </string>
+    <string name="confirm_button">Подтвердить</string>
+
+    <string name="state1">Жен</string>
+    <string name="state2">Оба</string>
+    <string name="state3">Муж</string>
+
+    <string name="slider_label">От: %1$d, до: %2$d</string>
+    <string name="close_button">Закрыть</string>
+    <string name="previous_button">Предыдущий</string>
+    <string name="next_button">Следующий</string>
+
+    <string name="current_image">Текущая картинка пользователя</string>
+</resources>
