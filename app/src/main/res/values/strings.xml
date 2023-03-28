@@ -1,4 +1,35 @@
 <resources>
     <string name="app_name">FlirtCompose</string>
     <string name="location">location</string>
+    <string name="not_implemented">Not implemented yet.</string>
+    <string name="back_arrow_button">Back arrow button</string>
+    <string name="gallery">Gallery</string>
+    <string name="add_to_favorite">Add to favorite</string>
+    <string name="select_photo">Select photo</string>
+    <string name="expand_gallery">Expand gallery</string>
+    <string name="favorite_button">Favorite</string>
+    <string name="chat_button">Chat</string>
+    <string name="like_button">Like button</string>
+    <string name="refresh">Refresh</string>
+    <string name="menu">Menu</string>
+    <string name="filter">Filter</string>
+    <string name="error_message">Something went wrong. Try Again:(</string>
+    <string name="retry_button">Try again</string>
+    <string name="slider_age_title">Select preferable age: </string>
+    <string name="slider_photo_title">Select preferable photo number: </string>
+    <string name="switcher_title">Select gender: </string>
+    <string name="confirm_button">Confirm</string>
+
+    <string name="state1">Female</string>
+    <string name="state2">Both</string>
+    <string name="state3">Male</string>
+
+    <string name="slider_label">From: %1$d, to: %2$d</string>
+    <string name="close_button">Close</string>
+    <string name="previous_button">Previous</string>
+    <string name="next_button">Next</string>
+
+    <string name="current_image">Current image of the person</string>
+
+
 </resources>

@@ -14,7 +14,7 @@ class NetworkRequestRepository(
 ): RequestRepository {
 
     override suspend fun getJournals(page: Int): Response<Request> {
-        delay(3000L)
+        delay(1500L)
         return requestApiService.getJournals(page)
     }
 }

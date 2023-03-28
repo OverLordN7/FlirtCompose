@@ -8,16 +8,13 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,101 +36,123 @@ import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.theme.*
 
 
-private const val TAG = "ProfileScreen"
 private const val HEADER = "http://dating.mts.by"
 
 
 @Composable
-fun ProfileScreen(personViewModel: PersonViewModel,navController:NavController,modifier: Modifier = Modifier){
+fun ProfileScreen(
+    personViewModel: PersonViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     val person = personViewModel.person
 
-    Column(
+    Scaffold(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        topBar = {
+            TopAppBar( title = { Text(text = stringResource(id = R.string.app_name)) })
+        },
     ) {
-
-        PersonalInfoCard(person = person,navController)
-        ButtonMenu()
-        GalleryCard(person = person,navController, personViewModel = personViewModel)
-        Text(text = person.greeting,color = Color.White)
-
+        Surface(
+            color = MaterialTheme.colors.background,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+            LazyColumn(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    PersonalInfoCard(
+                        person = person,
+                        onBack = {navController.popBackStack()}
+                    )
+                }
+                item {
+                    ButtonMenu()
+                }
+                item {
+                    GalleryCard(
+                        person = person,
+                        personViewModel = personViewModel,
+                        onPhotoSelected = { id->
+                            navController
+                                .navigate( Screen.ImageBeltScreen.withArgs(id.toString()))
+                        }
+                    )
+                }
+                item {
+                    Text(text = person.greeting, color = Color.White)
+                }
+            }
+        }
     }
 }
 
 
 @Composable
-fun PersonalInfoCard(person: Person,navController: NavController){
+fun PersonalInfoCard(person: Person, onBack:()->Unit){
+
     val preparedImg = HEADER + person.iurl_600
     val context = LocalContext.current
 
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    //Rainbow border for image setup
+    val borderWidth = 4.dp
+    val rainbowColorBrush = remember {
+        Brush.sweepGradient(
+            listOf(
+                RainbowPurple,
+                RainbowPink,
+                RainbowMango,
+                RainbowOrange,
+                RainbowYellow,
+                RainbowLightGreen,
+                RainbowLightBlue,
+                RainbowLightPurple
+            )
+        )
+    }
+
+    Row(modifier = Modifier.fillMaxWidth() ) {
         Row(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.Top,
             modifier = Modifier.weight(1f)
         ) {
-            OutlinedButton(
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                border = BorderStroke(0.dp,Color.Transparent),
-                modifier = Modifier
-                    .size(50.dp)
-                    .weight(0.5f),
-                contentPadding = PaddingValues(),
-                onClick = {navController.popBackStack()},
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                    contentDescription = "chat",
-                    modifier = Modifier.size(25.dp)
-                )
-            }
+            CustomIconButton(
+                imageRes = R.drawable.baseline_arrow_back_24,
+                imageResDesc = R.string.back_arrow_button,
+                onClick = onBack,
+                size = 50,
+                modifier = Modifier.weight(0.5f)
+            )
         }
 
         Card(
+            backgroundColor = DarkGray,
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
                 .padding(4.dp),
-            backgroundColor = DarkGray,
         ){
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(8.dp)
             ) {
-                Row(){
-                    //Main Image
-                    //Rainbow border for image setup
-                    val rainbowColorBrush = remember {
-                        Brush.sweepGradient(
-                            listOf(
-                                RainbowPurple,
-                                RainbowPink,
-                                RainbowMango,
-                                RainbowOrange,
-                                RainbowYellow,
-                                RainbowLightGreen,
-                                RainbowLightBlue,
-                                RainbowLightPurple
-                            )
-                        )
-                    }
-                    val borderWidth = 4.dp
-
+                Row {
                     AsyncImage(
                         model = preparedImg,
                         contentDescription = person.name,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
-                            .size(150.dp)
                             .border(borderWidth, rainbowColorBrush, CircleShape)
                             .padding(borderWidth)
                             .clip(CircleShape)
-                        ,
+                            .size(150.dp),
                     )
                 }
-                Row(){
+
+                Row {
                     //Name
                     Text(
                         text = person.name,
@@ -155,21 +174,16 @@ fun PersonalInfoCard(person: Person,navController: NavController){
                     Spacer(modifier = Modifier.width(15.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedButton(
-                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                            border = BorderStroke(0.dp,Color.Transparent),
-                            modifier = Modifier.size(25.dp),
-                            contentPadding = PaddingValues(),
+                        CustomIconButton(
+                            imageRes = R.drawable.baseline_location_on_24,
+                            imageResDesc = R.string.location,
                             onClick = {
-                                Toast.makeText(
-                                    context, "option under development", Toast.LENGTH_SHORT).show()
-                                //TODO switch to the map, and show city.
-                            }) {
-                            Image(
-                                painter = painterResource(id = R.drawable.baseline_location_on_24),
-                                contentDescription = stringResource(R.string.location),
-                            )
-                        }
+                                Toast.makeText(context, R.string.not_implemented, Toast.LENGTH_SHORT)
+                                .show()
+                            },
+                            size = 25
+                        )
+
                         Text(
                             text = person.city,
                             color = Color.White,
@@ -177,20 +191,21 @@ fun PersonalInfoCard(person: Person,navController: NavController){
                             fontSize = 18.sp
                         )
                     }
-
                 }
             }
         }
-
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-fun GalleryCard(person: Person,navController: NavController,personViewModel: PersonViewModel){
+fun GalleryCard(
+    person: Person,
+    personViewModel: PersonViewModel,
+    onPhotoSelected: (Int)->Unit
+){
 
     var isExpanded by remember { mutableStateOf(false) }
-    var isBigPhotoSet by remember { mutableStateOf(false) }
     var expandHeight by remember { mutableStateOf(200) }
     var expandHeightGrid by remember { mutableStateOf(140) }
 
@@ -203,8 +218,6 @@ fun GalleryCard(person: Person,navController: NavController,personViewModel: Per
     }
 
     personViewModel.photoList = photoList
-
-
 
     Card(
         backgroundColor = DarkGray,
@@ -225,21 +238,29 @@ fun GalleryCard(person: Person,navController: NavController,personViewModel: Per
             )
         ) {
 
-            Text(text = "Gallery", color = Color.White)
+            Text(text = stringResource(id = R.string.gallery), color = Color.White)
 
-            Box(modifier = Modifier.height(expandHeightGrid.dp)){
+            Box(
+                modifier = Modifier.height(expandHeightGrid.dp)
+            ){
                 LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
+
                     items(photoList.size){
-                        PhotoCard(photoList[it],navController,it)
+                        PhotoCard(
+                            image = photoList[it],
+                            onClick = {onPhotoSelected(it)}
+                        )
                     }
                 }
             }
+
+            //If person contains more than 3 images, add option to expand gallery
             if (photoList.size>3){
-                OutlinedButton(
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                    border = BorderStroke(0.dp,Color.Transparent),
-                    modifier = Modifier.size(25.dp),
-                    contentPadding = PaddingValues(),
+                CustomIconButtonTwoStates(
+                    imageRes1 = R.drawable.baseline_expand_less_24,
+                    imageRes2 = R.drawable.baseline_expand_more_24,
+                    imageResDesc = R.string.expand_gallery,
+                    status = isExpanded ,
                     onClick = {
                         if (!isExpanded){
                             expandHeight = 500
@@ -250,27 +271,18 @@ fun GalleryCard(person: Person,navController: NavController,personViewModel: Per
                             expandHeightGrid = 140
                             isExpanded = false
                         }
-
-
-                    }) {
-                    Image(
-                        painter = painterResource(id = if (isExpanded) R.drawable.baseline_expand_less_24
-                        else R.drawable.baseline_expand_more_24),
-                        contentDescription = "add to favorite",
-                    )
-                }
+                    }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun PhotoCard(image: String,navController: NavController,id: Int){
-    Card(modifier = Modifier.clickable {
-
-        navController.navigate(Screen.ImageBeltScreen.withArgs(id.toString()))
-    }) {
-        AsyncImage(model = image, contentDescription = "image")
+fun PhotoCard(image: String, onClick: () -> Unit){
+    Card(onClick = onClick) {
+        AsyncImage(model = image, contentDescription = stringResource(id = R.string.select_photo))
     }
 }
 
@@ -285,12 +297,12 @@ fun ButtonMenu(){
     val context = LocalContext.current
 
     Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
             .height(80.dp)
             .padding(8.dp)
             .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround
     ){
 
         Column(
@@ -298,19 +310,14 @@ fun ButtonMenu(){
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ){
-            OutlinedButton(
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                border = BorderStroke(0.dp,Color.Transparent),
-                modifier = Modifier.size(25.dp),
-                contentPadding = PaddingValues(),
-                onClick = {isFavorite = !isFavorite}) {
-                Image(
-                    painter = painterResource(id = if (isFavorite) R.drawable.baseline_favorite_24
-                    else R.drawable.baseline_favorite_border_24),
-                    contentDescription = "add to favorite",
-                )
-            }
-            Text("Favorite", color = Color.White)
+            CustomIconButtonTwoStates(
+                imageRes1 = R.drawable.baseline_favorite_24,
+                imageRes2 = R.drawable.baseline_favorite_border_24,
+                imageResDesc = R.string.add_to_favorite,
+                status = isFavorite ,
+                onClick = { isFavorite = !isFavorite })
+
+            Text(stringResource(id = R.string.favorite_button), color = Color.White)
         }
 
         Column(
@@ -318,49 +325,87 @@ fun ButtonMenu(){
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ){
-            OutlinedButton(
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                border = BorderStroke(0.dp,Color.Transparent),
-                modifier = Modifier.size(25.dp),
-                contentPadding = PaddingValues(),
+            CustomIconButton(
+                imageRes = R.drawable.baseline_chat_24,
+                imageResDesc = R.string.chat_button,
                 onClick = {
-                    Toast.makeText(context,"Not implemented", Toast.LENGTH_SHORT).show()
-                }) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_chat_24),
-                    contentDescription = "chat",
-                )
-            }
-            Text("Chat", color = Color.White)
+                    Toast.makeText(context, R.string.not_implemented, Toast.LENGTH_SHORT)
+                        .show()
+                },
+            )
+            Text(stringResource(id = R.string.chat_button), color = Color.White)
         }
-
 
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ) {
-            OutlinedButton(
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-                border = BorderStroke(0.dp,Color.Transparent),
-                modifier = Modifier.size(25.dp),
-                contentPadding = PaddingValues(),
+            CustomIconButtonTwoStates(
+                imageRes1 = R.drawable.baseline_thumb_up_24,
+                imageRes2 = R.drawable.outline_thumb_up_24,
+                imageResDesc = R.string.like_button,
+                status = isLiked,
                 onClick = {
                     if (!isLiked){
                         countLikes.value +=1
                         isLiked = true
                     } else {
                         countLikes.value -= 1
-                        isLiked = false
-                    }
-
-                }) {
-                Image(
-                    painter = painterResource(id = if(isLiked) R.drawable.baseline_thumb_up_24 else R.drawable.outline_thumb_up_24),
-                    contentDescription = "like",
-                )
-            }
+                        isLiked = false }
+                }
+            )
             Text(text = countLikes.value.toString(), color = Color.White)
         }
+    }
+}
+
+@Composable
+fun CustomIconButton(
+    imageRes: Int,
+    imageResDesc: Int,
+    onClick: ()->Unit,
+    modifier: Modifier = Modifier,
+    size: Int = 25,
+){
+    OutlinedButton(
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+        border = BorderStroke(0.dp,Color.Transparent),
+        contentPadding = PaddingValues(),
+        onClick = onClick,
+        modifier = modifier
+            .size(size.dp)
+    ) {
+        Image(
+            painter = painterResource(id = imageRes),
+            contentDescription = stringResource(id = imageResDesc),
+            modifier = Modifier.size(25.dp)
+        )
+    }
+}
+
+@Composable
+fun CustomIconButtonTwoStates(
+    imageRes1: Int,
+    imageRes2: Int,
+    imageResDesc: Int,
+    status: Boolean,
+    onClick: ()->Unit,
+    modifier: Modifier = Modifier,
+    size: Int = 25,
+){
+    OutlinedButton(
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+        border = BorderStroke(0.dp,Color.Transparent),
+        contentPadding = PaddingValues(),
+        onClick = onClick,
+        modifier = modifier
+            .size(size.dp)
+    ) {
+        Image(
+            painter = painterResource(id = if(status) imageRes1 else imageRes2),
+            contentDescription = stringResource(id = imageResDesc),
+            modifier = Modifier.size(25.dp)
+        )
     }
 }

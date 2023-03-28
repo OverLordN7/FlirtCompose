@@ -26,7 +26,6 @@ private const val TAG = "PersonViewModel"
 sealed interface PersonUiState{
     data class Success(var personList: Flow<PagingData<Person>>): PersonUiState
     object Error: PersonUiState
-
     object Loading: PersonUiState
 }
 
@@ -35,13 +34,11 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
     var personUiState : PersonUiState by mutableStateOf(PersonUiState.Loading)
         private set
 
-
-
     var person = Person()
 
     var photoList: List<String> = emptyList()
 
-    val personPager = Pager(
+    private val personPager = Pager(
         PagingConfig(pageSize = 10)
     ){
         PersonPagingSource(requestRepository)
@@ -50,7 +47,6 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
     init {
         getPersonList()
     }
-
 
     fun getPersonList(){
         viewModelScope.launch {
@@ -65,30 +61,48 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         }
     }
 
-    fun getFilteredPersonList(sex: Int = 0, ageStartPosition: Int = 0, ageEndPosition: Int = 100){
-
-            val filterPager = Pager(PagingConfig(pageSize = 10)){
-                PersonPagingSource(requestRepository)
-            }.flow.map {pagingData->
-                pagingData.filter { person->
-                    filter(person,sex,ageStartPosition,ageEndPosition)
-                }
+    fun getFilteredPersonList(
+        sex: Int = 0,
+        ageStartPosition: Int = 0,
+        ageEndPosition: Int = 100,
+        photoStartPosition: Int = 1,
+        photoEndPosition: Int = 100,
+    ){
+        val filterPager = Pager(PagingConfig(pageSize = 10)){
+            PersonPagingSource(requestRepository)
+        }.flow.map {pagingData->
+            pagingData.filter { person->
+                filter(
+                    person,
+                    sex,
+                    ageStartPosition,
+                    ageEndPosition,
+                    photoStartPosition,
+                    photoEndPosition
+                )
             }
+        }
 
-            viewModelScope.launch {
-                personUiState = PersonUiState.Loading
-                personUiState = try{
-                    PersonUiState.Success(filterPager.cachedIn(viewModelScope))
-                }catch (e: IOException){
-                    PersonUiState.Error
-                } catch (e: HttpException){
-                    PersonUiState.Error
-                }
+        viewModelScope.launch {
+            personUiState = PersonUiState.Loading
+            personUiState = try{
+                PersonUiState.Success(filterPager.cachedIn(viewModelScope))
+            }catch (e: IOException){
+                PersonUiState.Error
+            } catch (e: HttpException){
+                PersonUiState.Error
             }
-
+        }
     }
 
-    private fun filter(person: Person,sex: Int,ageStartPosition: Int,ageEndPosition: Int): Boolean{
+    private fun filter(
+        person: Person,
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition: Int,
+        photoEndPosition: Int,
+    ): Boolean{
 
         val age = convertStringAgeToInt(person.age)
 
@@ -97,8 +111,11 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
         return if (sex == 2){
             //neglect this parameter
             (age in ageStartPosition..ageEndPosition)
+                    && (person.photos.size in photoStartPosition..photoEndPosition)
         } else{
-            person.sex == sex && (age in ageStartPosition..ageEndPosition)
+            person.sex == sex
+                    && (age in ageStartPosition..ageEndPosition)
+                    && (person.photos.size in photoStartPosition..photoEndPosition)
         }
     }
     private fun convertStringAgeToInt(age: String): Int{
@@ -109,9 +126,6 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
         return rawAge.toInt()
     }
-
-
-
 
     companion object{
         val Factory: ViewModelProvider.Factory = viewModelFactory {

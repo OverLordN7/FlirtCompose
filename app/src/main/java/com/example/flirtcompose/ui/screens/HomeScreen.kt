@@ -1,8 +1,6 @@
 package com.example.flirtcompose.ui.screens
 
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,11 +30,11 @@ import coil.compose.AsyncImage
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
-import com.example.flirtcompose.ui.theme.Purple200
+import com.example.flirtcompose.ui.theme.Crimson100
+import com.example.flirtcompose.ui.theme.Grey100
 import kotlinx.coroutines.flow.Flow
 
 
-private const val TAG = "HomeScreen"
 private const val HEADER = "http://dating.mts.by"
 
 @Composable
@@ -46,7 +42,13 @@ fun HomeScreen(
     personViewModel: PersonViewModel,
     navController: NavController,
     retryAction: () -> Unit,
-    filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit,
+    filterAction: (
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition: Int,
+        photoEndPosition: Int,
+    ) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -69,16 +71,20 @@ fun HomeScreen(
                 actions = {
 
                     IconButton(onClick = retryAction) {
-                        Icon(Icons.Default.Refresh,"Return to Default List")
+                        Icon(Icons.Default.Refresh, stringResource(id = R.string.refresh))
                     }
 
                     IconButton( onClick = { menuState = !menuState } ) {
-                        Icon(Icons.Default.MoreVert,"Menu")
+                        Icon(Icons.Default.MoreVert, stringResource(id = R.string.menu))
                     }
 
                     DropdownMenu( expanded = menuState, onDismissRequest = { menuState = false} ) {
-                        DropdownMenuItem( onClick = { showDialog.value = true } ) {
-                            Text(text = "Filter")
+                        DropdownMenuItem(
+                            onClick = {
+                                showDialog.value = true
+                                menuState = false
+                            } ) {
+                            Text(text = stringResource(id = R.string.filter))
                         }
                     }
                 }
@@ -96,9 +102,11 @@ fun HomeScreen(
                 is PersonUiState.Error -> ErrorScreen(retryAction)
                 is PersonUiState.Success -> ResultScreen(
                     flowList = state.personList,
-                    personViewModel = personViewModel,
-                    navController = navController,
-                    retryAction = retryAction
+                    onRetryAction = retryAction,
+                    onSelect = { person ->
+                        personViewModel.person = person
+                        navController.navigate(Screen.ProfileScreen.route)
+                    },
                 )
             }
         }
@@ -127,31 +135,33 @@ fun ErrorScreen(retryAction: () -> Unit ,modifier: Modifier = Modifier){
         modifier = modifier.fillMaxSize(),
     ) {
         Column {
-            Text(text = "Something went wrong. Try Again:(", color = Color.White)
+            Text(
+                text = stringResource(id = R.string.error_message),
+                color = Color.White
+            )
+
             Button(onClick = retryAction) {
-                Text(text = "Again", color = Color.White)
+                Text(
+                    text = stringResource(id = R.string.retry_button),
+                    color = Color.White
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun PersonCard(
-    person: Person,
-    navController: NavController,
-    personViewModel: PersonViewModel
-){
+fun PersonCard(person: Person, onClick: ()->Unit, modifier: Modifier = Modifier){
+
     val imageURL = HEADER + person.iurl_600
 
     Card(
-        modifier = Modifier
+        onClick = onClick,
+        modifier = modifier
             .padding(4.dp)
             .clip(RoundedCornerShape(10.dp))
             .border(4.dp, Color.Black, RoundedCornerShape(8))
-            .clickable {
-                personViewModel.person = person
-                navController.navigate(Screen.ProfileScreen.route)
-            },
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -159,11 +169,9 @@ fun PersonCard(
         ) {
             AsyncImage(
                 model = imageURL,
-                contentDescription = "image",
+                contentDescription = person.name,
                 modifier = Modifier.padding(4.dp)
             )
-            //TODO DELETE this line after debug
-            Text(person.photos.size.toString())
         }
     }
 }
@@ -171,22 +179,21 @@ fun PersonCard(
 @Composable
 fun ResultScreen(
     flowList: Flow<PagingData<Person>>,
-    personViewModel: PersonViewModel,
-    navController: NavController,
-    retryAction: () -> Unit
+    onRetryAction: () -> Unit,
+    onSelect: (Person)->Unit,
 ){
     val personList = flowList.collectAsLazyPagingItems()
 
     when(personList.loadState.append){
         is LoadState.NotLoading -> Unit
         LoadState.Loading -> { LoadingScreen() }
-        is LoadState.Error -> { ErrorScreen(retryAction) }
+        is LoadState.Error -> { ErrorScreen(onRetryAction) }
     }
 
     when(personList.loadState.refresh){
         is LoadState.NotLoading -> Unit
         LoadState.Loading -> { LoadingScreen() }
-        is LoadState.Error -> { ErrorScreen(retryAction) }
+        is LoadState.Error -> { ErrorScreen(onRetryAction) }
     }
 
     LazyVerticalGrid(columns = GridCells.Adaptive(100.dp)){
@@ -194,8 +201,7 @@ fun ResultScreen(
             personList[index]?.let { person ->
                 PersonCard(
                     person = person,
-                    navController = navController,
-                    personViewModel = personViewModel,
+                    onClick = {onSelect(person)}
                 )
             }
         }
@@ -203,11 +209,23 @@ fun ResultScreen(
 }
 
 @Composable
-fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageStartPosition: Int,ageEndPosition: Int) -> Unit){
+fun FilterDialog(
+    setShowDialog: (Boolean) -> Unit,
+    filterAction: (
+        sex: Int,
+        ageStartPosition: Int,
+        ageEndPosition: Int,
+        photoStartPosition:Int,
+        photoEndPosition: Int,
+    ) -> Unit
+){
 
     val isSexSelected = remember { mutableStateOf(2) }
-    val startPosition = remember { mutableStateOf(0) }
+    val startPosition = remember { mutableStateOf(20) }
     val endPosition = remember { mutableStateOf(100) }
+
+    val startPositionPhoto = remember { mutableStateOf(1) }
+    val endPositionPhoto = remember { mutableStateOf(100) }
 
     Dialog(
         onDismissRequest = { setShowDialog(false) }
@@ -224,7 +242,7 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
                     .padding(8.dp)
             ) {
                 Text(
-                    text = "Filter",
+                    text = stringResource(id = R.string.filter),
                     color = Color.Black,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
@@ -236,17 +254,31 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
                 CustomSlider(
                     startPosition,
                     endPosition,
-                    modifier = Modifier.weight(2f)
+                    stringResource(id = R.string.slider_age_title),
+                    20f..100f,
+                    modifier = Modifier.weight(3f)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                CustomSlider(
+                    startPositionPhoto,
+                    endPositionPhoto,
+                    stringResource(id = R.string.slider_photo_title),
+                    1f..100f,
+                    modifier = Modifier.weight(3f)
+                )
 
                 Column(
                     modifier = Modifier
                         .weight(2f)
                         .padding(4.dp)
                 ) {
-                    Text("Select gender: ", modifier = Modifier.padding(bottom = 4.dp))
+                    Text(
+                        stringResource(id = R.string.switcher_title),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
                     CustomSwitcher(isSexSelected)
                 }
 
@@ -263,11 +295,13 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
                             filterAction(
                                 isSexSelected.value,
                                 startPosition.value,
-                                endPosition.value
+                                endPosition.value,
+                                startPositionPhoto.value,
+                                endPositionPhoto.value
                             )
                         }
                     ) {
-                        Text(text = "Confirm")
+                        Text(text = stringResource(id = R.string.confirm_button))
                     }
                 }
             }
@@ -278,7 +312,12 @@ fun FilterDialog(setShowDialog: (Boolean) -> Unit, filterAction: (sex: Int,ageSt
 @Composable
 fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
 
-    val states = listOf("Female","Both", "Male")
+    val states = listOf(
+        stringResource(id = R.string.state1),
+        stringResource(id = R.string.state2),
+        stringResource(id = R.string.state3),
+    )
+
     var selectedState by remember { mutableStateOf(states[1])}
     val onStateChange = { text: String -> selectedState = text }
 
@@ -291,28 +330,31 @@ fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
     Surface(
         shape = RoundedCornerShape(24.dp),
         elevation = 4.dp,
-        modifier = modifier
-            .wrapContentSize()
+        modifier = modifier.wrapContentSize()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(24.dp))
-                .background(Color.LightGray)
+                .background(Grey100)
         ) {
             states.forEach { text->
-                Text(
-                    text = text,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clip(shape = RoundedCornerShape(24.dp))
-                        .clickable { onStateChange(text) }
-                        .background(if (text == selectedState) Purple200 else Color.LightGray)
-                        .padding(vertical = 12.dp, horizontal = 16.dp)
-                        .size(width = 40.dp, height = 20.dp),
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = text,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(24.dp))
+                            .clickable { onStateChange(text) }
+                            .background(if (text == selectedState) Crimson100 else Grey100)
+                            .padding(vertical = 12.dp, horizontal = 16.dp)
+                            .size(width = 40.dp, height = 20.dp),
+                    )
+                }
             }
         }
     }
@@ -323,32 +365,30 @@ fun CustomSwitcher(sex: MutableState<Int>, modifier: Modifier = Modifier){
 fun CustomSlider(
     startPosition: MutableState<Int>,
     endPosition: MutableState<Int>,
+    title: String,
+    initialSliderStatus: ClosedFloatingPointRange<Float>,
     modifier: Modifier = Modifier
 ){
-    var sliderStatus by remember { mutableStateOf(20f..100f) }
-    var start by remember { mutableStateOf(20) }
-    var end by remember { mutableStateOf(100) }
+    var sliderStatus by remember { mutableStateOf(initialSliderStatus) }
 
     Card(
         elevation = 4.dp,
         modifier = modifier
-        .padding(8.dp)
-        .fillMaxWidth()
+            .padding(8.dp)
+            .fillMaxWidth()
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Select preferable age: ")
+            Text(text = title)
             RangeSlider(
                 values = sliderStatus,
                 onValueChange = {sliderStatus_ ->
                     sliderStatus = sliderStatus_
                 },
-                valueRange = 20f..100f,
+                valueRange = initialSliderStatus,
                 onValueChangeFinished = {
-                    Log.d(TAG, "Start: ${sliderStatus.start}, End: ${sliderStatus.endInclusive}")
-
                     startPosition.value = sliderStatus.start.toInt()
                     endPosition.value = sliderStatus.endInclusive.toInt()
 
@@ -357,11 +397,13 @@ fun CustomSlider(
                 modifier = Modifier.padding(4.dp)
             )
 
-            start= sliderStatus.start.toInt()
-            end = sliderStatus.endInclusive.toInt()
-
-            Text(text = "Start: ${sliderStatus.start.toInt()}, End: ${sliderStatus.endInclusive.toInt()}")
-
+            Text(
+                text = stringResource(
+                    id = R.string.slider_label,
+                    sliderStatus.start.toInt(),
+                    sliderStatus.endInclusive.toInt(),
+                )
+            )
         }
 
     }

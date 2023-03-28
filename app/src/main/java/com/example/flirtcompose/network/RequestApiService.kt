@@ -6,11 +6,8 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface RequestApiService {
-
     @GET("ByLiked")
     suspend fun getJournals(
         @Query("page") page:Int,
     ): Response<Request>
-
-
 }
