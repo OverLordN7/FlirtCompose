@@ -38,17 +38,19 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     var photoList: List<String> = emptyList()
 
-    private val personPager = Pager(
-        PagingConfig(pageSize = 10)
-    ){
-        PersonPagingSource(requestRepository)
-    }.flow.cachedIn(viewModelScope)
 
     init {
         getPersonList()
     }
 
     fun getPersonList(){
+
+        val personPager = Pager(
+            PagingConfig(pageSize = 10)
+        ){
+            PersonPagingSource(requestRepository)
+        }.flow.cachedIn(viewModelScope)
+
         viewModelScope.launch {
             personUiState = PersonUiState.Loading
             personUiState = try{
