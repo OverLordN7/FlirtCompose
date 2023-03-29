@@ -139,13 +139,6 @@ fun ErrorScreen(retryAction: () -> Unit ,modifier: Modifier = Modifier){
                 text = stringResource(id = R.string.error_message),
                 color = Color.White
             )
-
-            Button(onClick = retryAction) {
-                Text(
-                    text = stringResource(id = R.string.retry_button),
-                    color = Color.White
-                )
-            }
         }
     }
 }
