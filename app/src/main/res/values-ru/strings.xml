@@ -31,4 +31,8 @@
     <string name="next_button">Следующий</string>
 
     <string name="current_image">Текущая картинка пользователя</string>
+    <string name="menu_item_home">Главный экран</string>
+    <string name="menu_item_settings">Настройки</string>
+    <string name="menu_item_graphs">Graphs</string>
+    <string name="menu_item_help">Help</string>
 </resources>
