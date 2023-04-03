@@ -17,6 +17,7 @@ import com.example.flirtcompose.data.RequestRepository
 import com.example.flirtcompose.model.Person
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -41,6 +42,10 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     var personListGraph: List<Person> = emptyList()
 
+    private val dataCache = mutableMapOf<String,List<Person>>()
+    private val DEFAULT_QUERY = "default_query"
+    private val currentQueryValue: String? = null
+
 
     init {
         getPersonList()
@@ -64,22 +69,57 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     fun getPersonList(){
 
-        val personPager = Pager(
-            PagingConfig(pageSize = 10)
-        ){
-            PersonPagingSource(requestRepository)
-        }.flow.cachedIn(viewModelScope)
+//        val personPager = Pager(
+//            PagingConfig(pageSize = 10)
+//        ){
+//            PersonPagingSource(requestRepository)
+//        }.flow.cachedIn(viewModelScope)
+//
+//        viewModelScope.launch {
+//            personUiState = PersonUiState.Loading
+//            personUiState = try{
+//                PersonUiState.Success(personPager.cachedIn(viewModelScope))
+//            }catch (e: IOException){
+//                PersonUiState.Error
+//            } catch (e: HttpException){
+//                PersonUiState.Error
+//            }
+//        }
 
         viewModelScope.launch {
             personUiState = PersonUiState.Loading
             personUiState = try{
-                PersonUiState.Success(personPager.cachedIn(viewModelScope))
+                PersonUiState.Success(getPersonListFromCacheOrInternet().cachedIn(viewModelScope))
             }catch (e: IOException){
                 PersonUiState.Error
             } catch (e: HttpException){
                 PersonUiState.Error
             }
         }
+
+
+
+    }
+
+    fun getPersonListFromCacheOrInternet():Flow<PagingData<Person>>{
+        val lastQuery = currentQueryValue ?: DEFAULT_QUERY
+        val cacheKey = lastQuery.hashCode().toString()
+
+        val cacheResult = dataCache[cacheKey]
+
+        if (cacheResult != null){
+            return flowOf(PagingData.from(cacheResult))
+        }
+
+        val newResult = Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {PersonPagingSource(requestRepository)}
+        ).flow.cachedIn(viewModelScope)
+
+        return newResult
     }
 
     fun getFilteredPersonList(
