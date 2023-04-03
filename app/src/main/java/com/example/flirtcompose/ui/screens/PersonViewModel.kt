@@ -15,6 +15,7 @@ import com.example.flirtcompose.RequestApplication
 import com.example.flirtcompose.data.PersonPagingSource
 import com.example.flirtcompose.data.RequestRepository
 import com.example.flirtcompose.model.Person
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -38,9 +39,27 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
 
     var photoList: List<String> = emptyList()
 
+    var personListGraph: List<Person> = emptyList()
+
 
     init {
         getPersonList()
+        getPersonListForGraph()
+    }
+
+    private fun getPersonListForGraph(times: Int = 10){
+        var index = 1
+        viewModelScope.launch {
+            while (index < times){
+                val response = requestRepository.getJournals(index)
+
+                if (response.body() != null){
+                    personListGraph = personListGraph + response.body()!!.users
+                }
+                delay(1500)
+                index++
+            }
+        }
     }
 
     fun getPersonList(){
@@ -120,7 +139,7 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
                     && (person.photos.size in photoStartPosition..photoEndPosition)
         }
     }
-    private fun convertStringAgeToInt(age: String): Int{
+    fun convertStringAgeToInt(age: String): Int{
         // clean string from spaces ' '
         var rawAge = age.replace(" ","")
         // clean string from letters of russian alphabet

@@ -42,11 +42,11 @@ fun PieChart(
     }
 
     val colors = listOf(
+        RainbowOrange,
+        RainbowYellow,
         Crimson100,
         Crimson50,
         RainbowMango,
-        RainbowOrange,
-        RainbowYellow,
 
     )
 

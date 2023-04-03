@@ -1,30 +1,36 @@
 package com.example.flirtcompose.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.MenuItem
-import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.custom.PieChart
-import com.example.flirtcompose.ui.menu.AppBar
 import com.example.flirtcompose.ui.menu.DefaultAppBar
 import com.example.flirtcompose.ui.menu.DrawerBody
 import com.example.flirtcompose.ui.menu.DrawerHeader
 import kotlinx.coroutines.launch
+
+
+private const val TAG = "GraphScreen"
+
 
 @Composable
 fun GraphScreen(
@@ -36,6 +42,28 @@ fun GraphScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    Log.d(TAG,"graphlist: ${personViewModel.personListGraph.size}")
+
+    var ageCategory1 = 0 //20..29
+    var ageCategory2 = 0 //30..39
+    var ageCategory3 = 0 //40..49
+    var ageCategory4 = 0 //50..59
+    var ageCategory5 = 0 //60..99
+
+
+
+
+    personViewModel.personListGraph.forEach {person ->
+        val age = personViewModel.convertStringAgeToInt(person.age)
+        when(age){
+            in 20..29->{ageCategory1++}
+            in 30..39->{ageCategory2++}
+            in 40..49->{ageCategory3++}
+            in 50..59->{ageCategory4++}
+            in 60..99->{ageCategory5++}
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -95,19 +123,23 @@ fun GraphScreen(
                 .fillMaxSize()
                 .padding(it),
         ) {
-            Column {
-                Spacer(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(30.dp))
-                PieChart(
-                    data = mapOf(
-                        Pair("Sample-1", 150),
-                        Pair("Sample-2", 120),
-                        Pair("Sample-3", 110),
-                        Pair("Sample-4", 170),
-                        Pair("Sample-5", 120),
+            LazyColumn {
+                item {
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp))
+                }
+                item{
+                    PieChart(
+                        data = mapOf(
+                            Pair("From 20 to 29", ageCategory1),
+                            Pair("From 30 to 39", ageCategory2),
+                            Pair("From 40 to 49", ageCategory3),
+                            Pair("From 50 to 59", ageCategory4),
+                            Pair("From 60 to 99", ageCategory5),
+                        )
                     )
-                )
+                }
             }
         }
     }
