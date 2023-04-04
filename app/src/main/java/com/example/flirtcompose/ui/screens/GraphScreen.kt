@@ -1,5 +1,6 @@
 package com.example.flirtcompose.ui.screens
 
+import android.provider.Settings.Global.getString
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.MenuItem
+import com.example.flirtcompose.navigation.Screen
 import com.example.flirtcompose.ui.custom.PieChart
 import com.example.flirtcompose.ui.menu.DefaultAppBar
 import com.example.flirtcompose.ui.menu.DrawerBody
@@ -107,11 +109,17 @@ fun GraphScreen(
                 ),
             ),
                 onItemClick = {
-                    if (it.id == "home"){
-                        Toast.makeText(context,"You pressed on ${it.title} redirecting...",Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
-                    }else{
-                        Toast.makeText(context,"You pressed on ${it.title}",Toast.LENGTH_SHORT).show()
+                    when (it.id) {
+                        "home" -> {
+                            navController.popBackStack(Screen.HomeScreen.route,false)
+                        }
+                        "graphs" -> {
+                            Toast.makeText(context,R.string.menu_item_toast_message,Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             )

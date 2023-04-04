@@ -88,7 +88,7 @@ fun HomeScreen(
                 showDialog
             )
         },
-        drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+        //drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
         drawerContent = {
             DrawerHeader()
             DrawerBody(items = listOf(
@@ -118,11 +118,18 @@ fun HomeScreen(
                 ),
             ),
                 onItemClick = {
-                    if (it.id == "graphs"){
-                        Toast.makeText(context,"You pressed on ${it.title} redirecting...",Toast.LENGTH_SHORT).show()
-                        navController.navigate(Screen.GraphScreen.route)
-                    }else{
-                        Toast.makeText(context,"You pressed on ${it.title}",Toast.LENGTH_SHORT).show()
+                    when (it.id) {
+                        "graphs" -> {
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            Toast.makeText(context,R.string.menu_item_toast_message,Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             )

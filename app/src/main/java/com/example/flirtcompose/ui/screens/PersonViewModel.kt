@@ -68,24 +68,6 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
     }
 
     fun getPersonList(){
-
-//        val personPager = Pager(
-//            PagingConfig(pageSize = 10)
-//        ){
-//            PersonPagingSource(requestRepository)
-//        }.flow.cachedIn(viewModelScope)
-//
-//        viewModelScope.launch {
-//            personUiState = PersonUiState.Loading
-//            personUiState = try{
-//                PersonUiState.Success(personPager.cachedIn(viewModelScope))
-//            }catch (e: IOException){
-//                PersonUiState.Error
-//            } catch (e: HttpException){
-//                PersonUiState.Error
-//            }
-//        }
-
         viewModelScope.launch {
             personUiState = PersonUiState.Loading
             personUiState = try{
@@ -96,12 +78,9 @@ class PersonViewModel(private val requestRepository: RequestRepository):ViewMode
                 PersonUiState.Error
             }
         }
-
-
-
     }
 
-    fun getPersonListFromCacheOrInternet():Flow<PagingData<Person>>{
+    private fun getPersonListFromCacheOrInternet():Flow<PagingData<Person>>{
         val lastQuery = currentQueryValue ?: DEFAULT_QUERY
         val cacheKey = lastQuery.hashCode().toString()
 

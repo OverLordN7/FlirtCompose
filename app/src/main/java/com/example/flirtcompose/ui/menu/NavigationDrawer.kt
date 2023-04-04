@@ -1,5 +1,6 @@
 package com.example.flirtcompose.ui.menu
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,22 +13,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.flirtcompose.R
 import com.example.flirtcompose.model.MenuItem
+import com.example.flirtcompose.ui.theme.Crimson100
 
 @Composable
 fun DrawerHeader() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 64.dp),
+            .background(Crimson100)
+            .height(200.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Header", fontSize = 60.sp)
+        Text(
+            text = stringResource(id = R.string.app_name),
+            fontSize = 50.sp,
+            color = Color.White
+        )
     }
 }
 
