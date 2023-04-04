@@ -236,9 +236,13 @@ fun GalleryCard(
                     stiffness = Spring.StiffnessLow
                 )
             )
+                .padding(8.dp)
         ) {
 
-            Text(text = stringResource(id = R.string.gallery), color = Color.White)
+            Text(
+                text = stringResource(id = R.string.gallery),
+                color = Color.White
+            )
 
             Box(
                 modifier = Modifier.height(expandHeightGrid.dp)

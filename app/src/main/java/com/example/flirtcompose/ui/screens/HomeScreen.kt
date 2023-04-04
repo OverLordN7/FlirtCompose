@@ -1,6 +1,7 @@
 package com.example.flirtcompose.ui.screens
 
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,13 +11,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,11 +29,16 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.example.flirtcompose.R
+import com.example.flirtcompose.model.MenuItem
 import com.example.flirtcompose.model.Person
 import com.example.flirtcompose.navigation.Screen
+import com.example.flirtcompose.ui.menu.AppBar
+import com.example.flirtcompose.ui.menu.DrawerBody
+import com.example.flirtcompose.ui.menu.DrawerHeader
 import com.example.flirtcompose.ui.theme.Crimson100
 import com.example.flirtcompose.ui.theme.Grey100
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 
 private const val HEADER = "http://dating.mts.by"
@@ -52,7 +58,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
-    var menuState by remember { mutableStateOf(false) }
+    var menuState = remember { mutableStateOf(false) }
 
     val state: PersonUiState = personViewModel.personUiState
 
@@ -63,33 +69,71 @@ fun HomeScreen(
         )
     }
 
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     Scaffold(
+        scaffoldState = scaffoldState,
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.app_name)) },
-                actions = {
-
-                    IconButton(onClick = retryAction) {
-                        Icon(Icons.Default.Refresh, stringResource(id = R.string.refresh))
+            AppBar(
+                onNavigationIconClick = {
+                    scope.launch {
+                        scaffoldState.drawerState.open()
                     }
-
-                    IconButton( onClick = { menuState = !menuState } ) {
-                        Icon(Icons.Default.MoreVert, stringResource(id = R.string.menu))
-                    }
-
-                    DropdownMenu( expanded = menuState, onDismissRequest = { menuState = false} ) {
-                        DropdownMenuItem(
-                            onClick = {
-                                showDialog.value = true
-                                menuState = false
-                            } ) {
-                            Text(text = stringResource(id = R.string.filter))
+                },
+                retryAction,
+                menuState,
+                showDialog
+            )
+        },
+        //drawerGesturesEnabled = scaffoldState.drawerState.isOpen,
+        drawerContent = {
+            DrawerHeader()
+            DrawerBody(items = listOf(
+                MenuItem(
+                    id = "home",
+                    title = stringResource(R.string.menu_item_home),
+                    contentDescription = "Go to home screen",
+                    icon = Icons.Default.Home
+                ),
+                MenuItem(
+                    id = "settings",
+                    title = stringResource(R.string.menu_item_settings),
+                    contentDescription = "Go to settings screen",
+                    icon = Icons.Default.Settings
+                ),
+                MenuItem(
+                    id = "graphs",
+                    title = stringResource(R.string.menu_item_graphs),
+                    contentDescription = "Go to graph screen",
+                    icon = Icons.Default.AddCircle
+                ),
+                MenuItem(
+                    id = "help",
+                    title = stringResource(R.string.menu_item_help),
+                    contentDescription = "Get Help",
+                    icon = Icons.Default.Info
+                ),
+            ),
+                onItemClick = {
+                    when (it.id) {
+                        "graphs" -> {
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            Toast.makeText(context,R.string.menu_item_toast_message,Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             )
-        },
+        }
     ) {
         Surface(
             color = MaterialTheme.colors.background,

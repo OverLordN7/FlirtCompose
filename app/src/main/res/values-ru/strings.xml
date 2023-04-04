@@ -31,4 +31,10 @@
     <string name="next_button">Следующий</string>
 
     <string name="current_image">Текущая картинка пользователя</string>
+    <string name="menu_item_home">Главный экран</string>
+    <string name="menu_item_settings">Настройки</string>
+    <string name="menu_item_graphs">Графики</string>
+    <string name="menu_item_help">Помощь</string>
+    <string name="menu_item_toast_message">Вы уже на данном экране</string>
+    <string name="menu_item_toast_default">Вы нажали на %1$s</string>
 </resources>

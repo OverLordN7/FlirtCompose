@@ -8,10 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.flirtcompose.navigation.Screen
-import com.example.flirtcompose.ui.screens.HomeScreen
-import com.example.flirtcompose.ui.screens.ImageBeltScreen
-import com.example.flirtcompose.ui.screens.PersonViewModel
-import com.example.flirtcompose.ui.screens.ProfileScreen
+import com.example.flirtcompose.ui.screens.*
 
 @Composable
 fun FlirtApp(){
@@ -47,6 +44,13 @@ fun FlirtApp(){
                 personViewModel = personViewModel,
                 navController = navController,
                 id = it.arguments?.getString("id")!!,
+            )
+        }
+
+        composable(route = Screen.GraphScreen.route){
+            GraphScreen(
+                personViewModel = personViewModel,
+                navController = navController
             )
         }
     }
